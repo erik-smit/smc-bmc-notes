@@ -5,7 +5,7 @@ host: Ubuntu 14.04 LTS 32-bit
 ## dependencies
 ```
 apt-get build-dep linux-lts-xenial
-apt install libpcre3-dev
+apt install libpcre3-dev unzip
 
 perl -pi -e 's/tool_oldlib/oldlib/' /usr/share/aclocal/libtool.m4 # libxml2 building fails with ranlib error
 ```

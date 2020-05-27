@@ -8,7 +8,7 @@ Interrupt functions: https://github.com/qemu/qemu/blob/8e5c952b370b57beb64282688
 A register in the device, set by the driver, to choose which functions to be notified about.
 
 ## Interrupt Status Register (ISR)
-A register in the device, set by the device, to tell the driver which function needs attention.
+A register in the device, set by the device, to tell the driver which function needs attention.  
 After the driver receives the interrupt from the device, the driver reads this register to find out which functions need attention.  
 Clear by writing the bits you want cleared. Apparently this clear-on-write is common in NICs.  
 Not to be confused with ISR (interrupt service routine).  

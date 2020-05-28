@@ -1,0 +1,3745 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [U-Boot] [PATCH 05/10] nds32: add nds32 board with common support
+   </TITLE>
+   <LINK REL="Index" HREF="index.html" >
+   <LINK REL="made" HREF="mailto:u-boot%40lists.denx.de?Subject=%5BU-Boot%5D%20%5BPATCH%2005/10%5D%20nds32%3A%20add%20nds32%20board%20with%20common%20support&In-Reply-To=1276248884-21492-1-git-send-email-macpaul%40andestech.com">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="072565.html">
+   <LINK REL="Next"  HREF="072615.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[U-Boot] [PATCH 05/10] nds32: add nds32 board with common support</H1>
+    <B>Macpaul Lin</B> 
+    <A HREF="mailto:u-boot%40lists.denx.de?Subject=%5BU-Boot%5D%20%5BPATCH%2005/10%5D%20nds32%3A%20add%20nds32%20board%20with%20common%20support&In-Reply-To=1276248884-21492-1-git-send-email-macpaul%40andestech.com"
+       TITLE="[U-Boot] [PATCH 05/10] nds32: add nds32 board with common support">macpaul at andestech.com
+       </A><BR>
+    <I>Fri Jun 11 11:34:39 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="072565.html">[U-Boot] [PATCH 04/10] nds32: add nds32 board with ag101 support
+</A></li>
+        <LI>Next message: <A HREF="072615.html">[U-Boot] [PATCH 05/10] nds32: add nds32 board with common	support
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#72556">[ date ]</a>
+              <a href="thread.html#72556">[ thread ]</a>
+              <a href="subject.html#72556">[ subject ]</a>
+              <a href="author.html#72556">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>	Add nds32 based common board related support.
+
+Signed-off-by: Macpaul Lin &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
+---
+ board/AndesTech/common/env.c         |  138 ++++++
+ board/AndesTech/common/flash.c       |  621 +++++++++++++++++++++++++++
+ board/AndesTech/common/flib_flash.c  |  721 ++++++++++++++++++++++++++++++++
+ board/AndesTech/common/flib_serial.c |  373 +++++++++++++++++
+ board/AndesTech/common/fotg2xx.c     |   60 +++
+ board/AndesTech/common/ftmac100.c    |  766 ++++++++++++++++++++++++++++++++++
+ board/AndesTech/common/ftpci100.c    |  712 +++++++++++++++++++++++++++++++
+ board/AndesTech/common/serial.c      |  141 +++++++
+ 8 files changed, 3532 insertions(+), 0 deletions(-)
+ create mode 100644 board/AndesTech/common/env.c
+ create mode 100644 board/AndesTech/common/flash.c
+ create mode 100644 board/AndesTech/common/flib_flash.c
+ create mode 100644 board/AndesTech/common/flib_serial.c
+ create mode 100644 board/AndesTech/common/fotg2xx.c
+ create mode 100644 board/AndesTech/common/ftmac100.c
+ create mode 100644 board/AndesTech/common/ftpci100.c
+ create mode 100644 board/AndesTech/common/serial.c
+
+diff --git a/board/AndesTech/common/env.c b/board/AndesTech/common/env.c
+new file mode 100644
+index 0000000..55e2b66
+--- /dev/null
++++ b/board/AndesTech/common/env.c
+@@ -0,0 +1,138 @@
++/*
++ * (C) Copyright 2002
++ * Sysgo Real-Time Solutions, GmbH &lt;www.elinos.com&gt;
++ * Marius Groeger &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>&gt;
++ *
++ * Copyright (C) 2006 Andes Technology Corporation
++ * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
++ * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
++ *
++ * See file CREDITS for list of people who contributed to this
++ * project.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ */
++
++#include &lt;asm/andesboot.h&gt;
++
++static int check_crc(bd_t *bd)
++{
++	/* need to calculate crc? */
++	if (bd-&gt;bi_ext.env_crc_valid == 0)
++	{
++		env_t *env = (env_t *)CONFIG_ENV_ADDR;
++
++		if (crc32(0, env-&gt;data, sizeof(env-&gt;data)) == env-&gt;crc)
++			bd-&gt;bi_ext.env_crc_valid = 1;
++		else
++			bd-&gt;bi_ext.env_crc_valid = -1;
++	}
++	return bd-&gt;bi_ext.env_crc_valid &gt; 0;
++}
++
++
++/*
++ * save environment buffer back to flash
++ * returns -1 on error, 0 if ok
++ */
++int board_env_save(bd_t *bd, env_t *env, int size)
++{
++	int rc;
++	ulong start_addr, end_addr;
++
++
++//no CONFIG_ENV_ADDR_REDUND
++#if CONFIG_ENV_SIZE &gt; CONFIG_ENV_SECT_SIZE /* modified: &lt;= to &gt;, by Hill, 20090313 */
++#error Make sure that CONFIG_ENV_SIZE &lt;= CONFIG_ENV_SECT_SIZE
++#endif
++
++	start_addr = CONFIG_ENV_ADDR;
++	end_addr   = start_addr + CONFIG_ENV_SIZE - 1;
++
++	rc = flash_sect_protect(0, CONFIG_ENV_ADDR, end_addr);
++	if (rc &lt; 0)
++		return rc;
++
++	rc = flash_sect_erase(start_addr, end_addr);
++	if (rc &lt; 0) {
++		flash_sect_protect(1, start_addr, end_addr);
++		flash_perror(rc);
++		return rc;
++	}
++
++	printf(&quot;Saving Environment to Flash...&quot;);
++	rc = flash_write((uchar*)env, start_addr, size);
++	if (rc &lt; 0)
++		flash_perror(rc);
++	else
++		printf(&quot;done.\n&quot;);
++
++	(void)flash_sect_protect(1, start_addr, end_addr);
++
++	return 0;
++}
++
++/*
++ * copy environment to memory
++ * returns -1 on error, 0 if ok
++ */
++int board_env_copy(bd_t *bd, env_t *data, int size)
++{
++	env_t *env = (env_t *)CONFIG_ENV_ADDR;
++
++	if (check_crc(bd)) {
++		memcpy(data, env, sizeof(env_t));
++		return 0;
++	}
++
++	return -1;
++}
++
++/*
++ * try to read env character at offset #index
++ *
++ * called before the environment is copied to ram
++ * returns -1 on error, 0 if ok
++ */
++int board_env_getchar(bd_t * bd, int index, uchar *c)
++{
++	env_t *env = (env_t *)CONFIG_ENV_ADDR;
++
++	/* check environment crc */
++	if (index &lt; sizeof(env-&gt;data) &amp;&amp; check_crc(bd)) {
++		*c = env-&gt;data[index];
++		return 0;
++	}
++
++	return -1;
++}
++
++/*
++ * try to read env character at offset #index
++ *
++ * called before the environment is copied to ram
++ * returns -1 on error, 0 if ok
++ */
++uchar *board_env_getaddr(bd_t * bd, int index)
++{
++	env_t *env = (env_t *)CONFIG_ENV_ADDR;
++
++	/* check environment crc */
++	if (index &lt; sizeof(env-&gt;data) &amp;&amp; check_crc(bd))
++		return &amp;env-&gt;data[index];
++
++	return 0;
++}
+diff --git a/board/AndesTech/common/flash.c b/board/AndesTech/common/flash.c
+new file mode 100644
+index 0000000..4dc68c9
+--- /dev/null
++++ b/board/AndesTech/common/flash.c
+@@ -0,0 +1,621 @@
++/*
++ * (C) Copyright 2002
++ * Sysgo Real-Time Solutions, GmbH &lt;www.elinos.com&gt;
++ * Marius Groeger &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>&gt;
++ *
++ * Copyright (C) 2006 Andes Technology Corporation
++ * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
++ * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
++ *
++ * See file CREDITS for list of people who contributed to this
++ * project.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ */
++
++#include &lt;asm/andesboot.h&gt;
++#include &quot;../include/porting.h&quot;
++#include &quot;../include/flib_flash.h&quot;
++//#include &lt;flash.h&gt;
++//#include &lt;andes.h&gt;
++
++ulong myflush(void);
++
++#define FLASH_BANK_SIZE 0x800000
++#define MAIN_SECT_SIZE  0x20000
++#define PARAM_SECT_SIZE 0x4000
++
++#define MX_SECTOR_COUNT			19
++#define SST39VF080_SECTOR_COUNT		256
++#define SST39VF016_SECTOR_COUNT		512
++
++/* puzzle magic for lart
++ * data_*_flash are def'd in flashasm.S
++ */
++
++extern u32 data_from_flash(u32);
++extern u32 data_to_flash(u32);
++
++#define PUZZLE_FROM_FLASH(x)		(x)
++#define PUZZLE_TO_FLASH(x)		(x)
++
++flash_info_t	flash_info[CONFIG_SYS_MAX_FLASH_BANKS];
++
++
++#define CMD_IDENTIFY			0x90909090
++#define CMD_ERASE_SETUP			0x20202020
++#define CMD_ERASE_CONFIRM		0xD0D0D0D0
++#define CMD_PROGRAM			0x40404040
++#define CMD_RESUME			0xD0D0D0D0
++#define CMD_SUSPEND			0xB0B0B0B0
++#define CMD_STATUS_READ			0x70707070
++#define CMD_STATUS_RESET		0x50505050
++
++#define BIT_BUSY			0x80808080
++#define BIT_ERASE_SUSPEND		0x40404040
++#define BIT_ERASE_ERROR			0x20202020
++#define BIT_PROGRAM_ERROR		0x10101010
++#define BIT_VPP_RANGE_ERROR		0x08080808
++#define BIT_PROGRAM_SUSPEND		0x04040404
++#define BIT_PROTECT_ERROR		0x02020202
++#define BIT_UNDEFINED			0x01010101
++
++#define BIT_SEQUENCE_ERROR		0x30303030
++#define BIT_TIMEOUT			0x80000000
++
++
++// --------------------------------------------------------------------
++//	In bytes
++// --------------------------------------------------------------------
++#define SRAM_BANK_SIZE_32K		0xb0
++#define SRAM_BANK_SIZE_64K		0xc0
++#define SRAM_BANK_SIZE_128K		0xd0
++#define SRAM_BANK_SIZE_256K		0xe0
++#define SRAM_BANK_SIZE_512K		0xf0
++#define SRAM_BANK_SIZE_1M		0x00
++#define SRAM_BANK_SIZE_2M		0x10
++#define SRAM_BANK_SIZE_4M		0x20
++#define SRAM_BANK_SIZE_8M		0x30
++#define SRAM_BANK_SIZE_16M		0x40
++#define SRAM_BANK_SIZE_32M		0x50
++
++
++#define SRAM_BUS_WIDTH_8		0
++#define SRAM_BUS_WIDTH_16		1
++#define SRAM_BUS_WIDTH_32		2
++
++#define K				(1024)
++
++ // pleaase change the timing parameter for different SRAM type
++#define TIMING_PARAMETER  (STMC_BANK_TM_AST3|STMC_BANK_TM_CTW3|STMC_BANK_TM_AT1_F|STMC_BANK_TM_AT2_3|STMC_BANK_TM_WTC3|STMC_BANK_TM_AHT3|STMC_BANK_TM_TRNA_F)
++
++// --------------------------------------------------------------------
++//	setting the config of ROM/flash/sram
++//	write_protect:	1 ==&gt; write protect, 0 ==&gt; should be readable/writable
++//	bank_base: 	==&gt; only the last 24 bits is affect
++// --------------------------------------------------------------------
++void sram_config(int bank_num, u32 bank_base, int write_protect, int bank_type, int bank_size, int bus_width) {
++	u32 config_reg_val;
++
++	config_reg_val = (1UL&lt;&lt;28) | (bank_base &amp; 0x0fffffff) | ((write_protect&amp;0x01)&lt;&lt;11) | bank_type | bank_size | bus_width;
++
++	cpe_outl( NDS32_COMMON_SRAMC_BASE + bank_num*8, config_reg_val);
++}
++
++
++void sram_disable(int bank_num) {
++	cpe_outl( NDS32_COMMON_SRAMC_BASE + bank_num*8, cpe_inl( NDS32_COMMON_SRAMC_BASE + bank_num*8) &amp; 0x0fffffff );
++}
++
++void sram_set_timing(int bank_num, unsigned long timing) {
++	cpe_outl( NDS32_COMMON_SRAMC_BASE + bank_num*8 + 4, timing );
++}
++
++void mx_flash_init(void)
++{
++	int j;
++
++	flash_info[0].flash_id = (MX_MANUFACT &amp; FLASH_VENDMASK) | (MX_ID_29LV008B &amp; FLASH_TYPEMASK);
++	flash_info[0].size = 0x400000;
++	flash_info[0].sector_count = MX_SECTOR_COUNT;
++	memset(flash_info[0].protect, 0, MX_SECTOR_COUNT);
++
++	for (j=0; j&lt;flash_info[0].sector_count; ++j)
++	{
++		if (j==0) {
++			flash_info[0].start[j] = PHYS_FLASH_1;
++		} else if (j==1 || j==2) {
++			flash_info[0].start[j] = PHYS_FLASH_1 + 64*K + 32*K*(j-1);
++		} else if (j==3) {
++			flash_info[0].start[j] = PHYS_FLASH_1 + 128*K;
++		} else {
++			flash_info[0].start[j] = PHYS_FLASH_1 + 256*K + 256*K*(j-4);
++		}
++	}
++}
++
++void sst39vf080_flash_init(void)
++{
++	int j;
++
++	flash_info[0].flash_id =
++		(SST_MANUFACT &amp; FLASH_VENDMASK) | (SST_ID_39VF080 &amp; FLASH_TYPEMASK);
++	flash_info[0].size = 0x400000;
++	flash_info[0].sector_count = SST39VF080_SECTOR_COUNT;
++	memset(flash_info[0].protect, 0, SST39VF080_SECTOR_COUNT);
++
++	for (j=0; j&lt;flash_info[0].sector_count; ++j) {
++		flash_info[0].start[j] = PHYS_FLASH_1 + 16*K*j;
++	}
++}
++
++void sst39vf016_flash_init(void)
++{
++	int j;
++
++	flash_info[0].flash_id =
++		(SST_MANUFACT &amp; FLASH_VENDMASK) | (SST_ID_39VF016 &amp; FLASH_TYPEMASK);
++	flash_info[0].size = 0x800000;
++	flash_info[0].sector_count = SST39VF016_SECTOR_COUNT;
++	memset(flash_info[0].protect, 0, SST39VF016_SECTOR_COUNT);
++
++	for (j=0; j&lt;flash_info[0].sector_count; ++j) {
++		flash_info[0].start[j] = PHYS_FLASH_1 + 16*K*j;
++	}
++}
++
++/* add by Charles Tsai */
++void intel_mx_flash_init(void)
++{
++	int j;
++
++	flash_info[0].flash_id =
++		(INTEL_MANUFACT &amp; FLASH_VENDMASK) | (INTEL_ID_E28F128 &amp; FLASH_TYPEMASK);
++	flash_info[0].size = INTEL_E28F128_SIZE*2; /* 32 MB */
++	flash_info[0].sector_count = (INTEL_E28F128_SIZE*2)/0x40000;
++
++	//memset(flash_info[0].protect, 0, (INTEL_E28F128_SIZE*2)/0x40000); // &lt;- bug
++	memset(flash_info[0].protect, 0, CONFIG_SYS_MAX_FLASH_SECT);
++
++	for (j=0; j&lt;flash_info[0].sector_count; ++j)
++	{
++		flash_info[0].start[j] = PHYS_FLASH_1 + 256*K*j; /* sector size=256K */
++	}
++}
++/* end add */
++
++/*-----------------------------------------------------------------------
++ */
++//added by ivan
++#define FLASH_BANK CONFIG_FLASH_BANK // 1
++
++ulong flash_init(void)
++{
++	unsigned int DDI1=0;
++	unsigned int DDI2=0;
++	int i=0;
++
++	//added by ivan wang
++	sram_config(FLASH_BANK, CONFIG_FLASH_BASE, 0, 0, SRAM_BANK_SIZE_4M, SRAM_BUS_WIDTH_32);
++	//sram_config(FLASH_BANK, CONFIG_FLASH_BASE, 0, 0, SRAM_BANK_SIZE_8M, SRAM_BUS_WIDTH_32);
++
++	sram_set_timing(FLASH_BANK, TIMING_PARAMETER);
++	for(i=1;i&lt;7;i++)  // modify by Charles Tsai, bank 0 can't be disabled
++		if(i!=FLASH_BANK)
++			sram_disable(i);
++
++//	fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
++	fLib_Flash_ReadID(MX_Type, PHYS_FLASH_1, FLASH_FOUR, &amp;DDI1, &amp;DDI2);
++	//printf(&quot;DDI1 = %x, DDI2 = %x\n&quot;, DDI1, DDI2);
++	if (DDI1 == 0xc2c2c2c2 &amp;&amp; DDI2 == 0x37373737)			// &#169;&#244;&#167;&#187; flash
++	{
++		fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
++		mx_flash_init();
++	} else {
++		fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
++		fLib_Flash_ReadID(SST_Type, PHYS_FLASH_1, FLASH_FOUR, &amp;DDI1, &amp;DDI2);
++		fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
++		//printf(&quot;DDI1 = %x, DDI2 = %x\n&quot;, DDI1, DDI2);
++		if (DDI1 == 0xbfbfbfbf &amp;&amp; DDI2 == 0xd8d8d8d8) {
++			sst39vf080_flash_init();
++		} else if(DDI1 == 0xbfbfbfbf &amp;&amp; DDI2 == 0xd9d9d9d9) {
++			sram_config(FLASH_BANK, CONFIG_FLASH_BASE, 0, 0, SRAM_BANK_SIZE_8M, SRAM_BUS_WIDTH_32);
++			sst39vf016_flash_init();
++		} else {
++			/* add by Charles Tsai */
++			sram_set_timing(FLASH_BANK, TIMING_PARAMETER);
++			sram_config(FLASH_BANK, CONFIG_FLASH_BASE, 0, 0, SRAM_BANK_SIZE_32M, SRAM_BUS_WIDTH_32);
++			fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
++			fLib_Flash_ReadID(Intel_Type, PHYS_FLASH_1, FLASH_FOUR, &amp;DDI1, &amp;DDI2);
++			fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
++			printf(&quot; ID1:%x, ID2:%x \n&quot;, DDI1, DDI2);
++			if ( (DDI1 == 0x00890089) &amp;&amp; (DDI2 == 0x00180018)) {
++				printf(&quot;Find Intel flash\n&quot;);
++				intel_mx_flash_init();
++			} else
++				printf(&quot;can not found any flash\n&quot;);
++			/* end add */
++		}
++	}
++
++#ifdef not_complete_yet
++	/*
++	 * Protect monitor and environment sectors
++	 */
++	flash_protect(FLAG_PROTECT_SET,
++			  CONFIG_FLASH_BASE,
++			  CONFIG_FLASH_BASE + _armboot_end - _armboot_start,
++			  &amp;flash_info[0]);
++
++	flash_protect(FLAG_PROTECT_SET,
++			  CONFIG_ENV_ADDR,
++			  CONFIG_ENV_ADDR + CONFIG_ENV_SIZE - 1,
++			  &amp;flash_info[0]);
++#endif /* end_of_not */
++
++	return flash_info[0].size;
++}
++
++/*
++ *
++ */
++void flash_print_info(flash_info_t *info)
++{
++	int i;
++
++	switch (info-&gt;flash_id &amp; FLASH_VENDMASK) {
++		case (MX_MANUFACT &amp; FLASH_VENDMASK):
++			printf(&quot;Macronix: &quot;);
++		break;
++
++		case (SST_MANUFACT &amp; FLASH_VENDMASK):
++			printf(&quot;SST: &quot;);
++		break;
++		case (INTEL_MANUFACT &amp; FLASH_VENDMASK):
++			printf(&quot;Intel: &quot;);
++		break;
++		default:
++			printf(&quot;Unknown Vendor &quot;);
++		break;
++	}
++
++	switch (info-&gt;flash_id &amp; FLASH_TYPEMASK) {
++		case (MX_ID_29LV008B &amp; FLASH_TYPEMASK):
++			printf(&quot;4x 29LV008B(8Mbit)\n&quot;);
++		break;
++
++		case (SST_ID_39VF080 &amp; FLASH_TYPEMASK):
++			printf(&quot;4x 39VF080(8Mbit)\n&quot;);
++		break;
++
++		case (SST_ID_39VF016 &amp; FLASH_TYPEMASK):
++			printf(&quot;4x 39VF016(16Mbit)\n&quot;);
++		break;
++		case (INTEL_ID_E28F128&amp;FLASH_TYPEMASK):
++			printf(&quot;2x E28F128(128Mbit)\n&quot;);
++		break;
++		default:
++			printf(&quot;Unknown Chip Type: %x\n&quot;, info-&gt;flash_id &amp; FLASH_TYPEMASK);
++		goto Done;
++		break;
++	}
++
++	printf(&quot;  Size: %ld MB in %d Sectors\n&quot;, info-&gt;size &gt;&gt; 20, info-&gt;sector_count);
++
++	printf(&quot;  Sector Start Addresses:&quot;);
++	for (i = 0; i &lt; info-&gt;sector_count; i++) {
++		if ((i % 5) == 0) {
++			printf (&quot;\n   &quot;);
++		}
++		printf (&quot; %08lX%s&quot;, info-&gt;start[i], info-&gt;protect[i] ? &quot; (RO)&quot; : &quot;	 &quot;);
++	}
++	printf (&quot;\n&quot;);
++
++Done:
++; //This is because new version of GCC doesn't take label at the end of the compound statement.
++}
++
++/*
++ *
++ */
++
++int flash_error (ulong code)
++{
++	/* Check bit patterns */
++	/* SR.7=0 is busy, SR.7=1 is ready */
++	/* all other flags indicate error on 1 */
++	/* SR.0 is undefined */
++	/* Timeout is our faked flag */
++
++	/* sequence is described in Intel 290644-005 document */
++
++	/* check Timeout */
++	if (code &amp; BIT_TIMEOUT) {
++		printf (&quot;Timeout\n&quot;);
++		return ERR_TIMOUT;
++	}
++
++	/* check Busy, SR.7 */
++	if (~code &amp; BIT_BUSY) {
++		printf (&quot;Busy\n&quot;);
++		return ERR_PROG_ERROR;
++	}
++
++	/* check Vpp low, SR.3 */
++	if (code &amp; BIT_VPP_RANGE_ERROR) {
++		printf (&quot;Vpp range error\n&quot;);
++		return ERR_PROG_ERROR;
++	}
++
++	/* check Device Protect Error, SR.1 */
++	if (code &amp; BIT_PROTECT_ERROR) {
++		printf (&quot;Device protect error\n&quot;);
++		return ERR_PROG_ERROR;
++	}
++
++	/* check Command Seq Error, SR.4 &amp; SR.5 */
++	if (code &amp; BIT_SEQUENCE_ERROR) {
++		printf (&quot;Command seqence error\n&quot;);
++		return ERR_PROG_ERROR;
++	}
++
++	/* check Block Erase Error, SR.5 */
++	if (code &amp; BIT_ERASE_ERROR) {
++		printf (&quot;Block erase error\n&quot;);
++		return ERR_PROG_ERROR;
++	}
++
++	/* check Program Error, SR.4 */
++	if (code &amp; BIT_PROGRAM_ERROR) {
++		printf (&quot;Program error\n&quot;);
++		return ERR_PROG_ERROR;
++	}
++
++	/* check Block Erase Suspended, SR.6 */
++	if (code &amp; BIT_ERASE_SUSPEND) {
++		printf (&quot;Block erase suspended\n&quot;);
++		return ERR_PROG_ERROR;
++	}
++
++	/* check Program Suspended, SR.2 */
++	if (code &amp; BIT_PROGRAM_SUSPEND) {
++		printf (&quot;Program suspended\n&quot;);
++		return ERR_PROG_ERROR;
++	}
++
++	/* OK, no error */
++	return ERR_OK;
++}
++
++
++// --------------------------------------------------------------------
++//	erase the sectors between s_first to s_last
++// --------------------------------------------------------------------
++int flash_erase (flash_info_t *info, int s_first, int s_last)
++{
++	int iflag, cflag, prot, sect;
++	int rc = ERR_OK;
++
++	/* first look for protection bits */
++
++	if (info-&gt;flash_id == FLASH_UNKNOWN) {
++		return ERR_UNKNOWN_FLASH_TYPE;
++	}
++
++	if ((s_first &lt; 0) || (s_first &gt; s_last)) {
++		return ERR_INVAL;
++	}
++
++	if ((info-&gt;flash_id &amp; FLASH_VENDMASK) != (MX_MANUFACT &amp; FLASH_VENDMASK) &amp;&amp;
++		(info-&gt;flash_id &amp; FLASH_VENDMASK) != (SST_MANUFACT &amp; FLASH_VENDMASK) ) {
++		if((info-&gt;flash_id &amp; FLASH_VENDMASK) != (INTEL_MANUFACT &amp; FLASH_VENDMASK))
++		return ERR_UNKNOWN_FLASH_VENDOR;
++	}
++
++	prot = 0;
++	for (sect=s_first; sect&lt;=s_last; ++sect) {
++		if (info-&gt;protect[sect]) {
++			prot++;
++		}
++	}
++	if (prot) {
++		// if there exist any sector was protected between s_first to s_last, than return error
++		return ERR_PROTECTED;
++	}
++
++	/*
++	 * Disable interrupts which might cause a timeout
++	 * here. Remember that our exception vectors are
++	 * at address 0 in the flash, and we don't want a
++	 * (ticker) exception to happen while the flash
++	 * chip is in programming mode.
++	 */
++
++	cflag = icache_status();
++	icache_disable();
++
++	iflag = disable_interrupts();
++	/* add  by Charles Tsai */
++	//fLib_Flash_ChipErase(Intel_Type, info-&gt;start[0], FLASH_FOUR);
++	/* Start erase on unprotected sectors */
++	for (sect = s_first; sect&lt;=s_last &amp;&amp; !ctrlc(); sect++)
++	{
++		int start_addr;
++		int end_addr;
++		printf(&quot;Erasing sector %2d ... &quot;, sect);
++
++		if((info-&gt;flash_id &amp; FLASH_VENDMASK) == (MX_MANUFACT&amp;FLASH_VENDMASK) ) {
++			fLib_Flash_SectorErase(MX_Type, info-&gt;start[0],
++			FLASH_FOUR, (info-&gt;start[sect]-info-&gt;start[0])/4);
++		} else if((info-&gt;flash_id &amp; FLASH_VENDMASK) == (SST_MANUFACT&amp;FLASH_VENDMASK) ) {
++			fLib_Flash_SectorErase(SST_Type, info-&gt;start[0], FLASH_FOUR, (info-&gt;start[sect]-info-&gt;start[0])/4);
++		}
++		else if((info-&gt;flash_id &amp; FLASH_VENDMASK) == (INTEL_MANUFACT&amp;FLASH_VENDMASK) ) {
++			/* modify by Charles Tsai for test */
++			fLib_Flash_ChipErase(Intel_Type, info-&gt;start[sect], FLASH_FOUR);
++			fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
++		} else {
++			printf(&quot;unknown flash type\n&quot;);
++		return ERR_UNKNOWN_FLASH_TYPE;
++	}
++
++		reset_timer_masked();
++		start_addr = info-&gt;start[sect];
++		if (sect &lt; flash_info[0].sector_count-1) {
++			end_addr = info-&gt;start[sect+1];
++		} else {
++			end_addr = info-&gt;start[0] + info-&gt;size;
++		}
++		for (; start_addr &lt; end_addr; start_addr+=4) {
++			for (; *(unsigned long *)start_addr != 0xffffffff; ) {
++				if (get_timer_masked() &gt; CONFIG_FLASH_ERASE_TOUT) {
++					printf(&quot;fail:0x%x\n&quot;,start_addr);
++					return ERR_PROG_ERROR;
++				}
++			}
++		}
++
++		printf(&quot;ok.\n&quot;);
++	}
++
++	if (ctrlc())
++		printf(&quot;User Interrupt!\n&quot;);
++
++outahere:
++	/* allow flash to settle - wait 10 ms */
++	udelay_masked(10000);
++
++	if (iflag)
++		enable_interrupts();
++
++	if (cflag)
++		icache_enable();
++
++	return rc;
++}
++
++/*
++ * Copy memory to flash
++ */
++// --------------------------------------------------------------------
++//	return
++//		ERR_OK ==&gt; without error
++//		less than 0 ==&gt; error code
++// --------------------------------------------------------------------
++volatile static int write_word (flash_info_t *info, ulong dest, ulong data)
++{
++	volatile ulong new_data;
++	int flash_type;
++
++	if ( (info-&gt;flash_id &amp; FLASH_VENDMASK) == (MX_MANUFACT &amp; FLASH_VENDMASK) ) {
++		flash_type = MX_Type;
++	} else if( (info-&gt;flash_id &amp; FLASH_VENDMASK) == (SST_MANUFACT &amp; FLASH_VENDMASK) ) {
++		flash_type = SST_Type;
++	} else if( (info-&gt;flash_id &amp; FLASH_VENDMASK) == (INTEL_MANUFACT &amp; FLASH_VENDMASK) ) {
++		/* modify by charles Tsai only for test */
++		flash_type = Intel_Type;
++	} else {
++		printf(&quot;unknown flash type\n&quot;);
++		return ERR_UNKNOWN_FLASH_TYPE;
++	}
++
++	fLib_Flash_ProgramWord(flash_type, info-&gt;start[0], dest, data);
++	fLib_Flash_ReadWord(dest, &amp;new_data);
++
++	if (new_data != data) {
++		printf(&quot;addr: %x write error: should %x ==&gt; result %x\n&quot;, dest, data, new_data);
++		return ERR_PROG_ERROR;
++	}
++
++	return ERR_OK;
++}
++
++/*---------------------------------------------------------------------
++ * Copy memory to flash.
++ */
++// --------------------------------------------------------------------
++//	src ==&gt; source address
++//	addr ==&gt; destination address
++//	return
++//	ERR_OK ==&gt; without error
++//	less than 0 ==&gt; error code
++// --------------------------------------------------------------------
++int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
++{
++
++	ulong cp, wp, data;
++	int l;
++	int i, rc;
++
++	wp = (addr &amp; ~3);   /* get lower word aligned address */
++
++	/*
++	 * handle unaligned start bytes
++	 */
++	if ((l = addr - wp) != 0) {
++		data = 0;
++		for (i=0, cp=wp; i&lt;l; ++i, ++cp) {
++			data = (data &gt;&gt; 8) | (*(uchar *)cp &lt;&lt; 24);
++		}
++		for (; i&lt;4 &amp;&amp; cnt&gt;0; ++i) {
++			data = (data &gt;&gt; 8) | (*src++ &lt;&lt; 24);
++			--cnt;
++			++cp;
++		}
++		for (; cnt==0 &amp;&amp; i&lt;4; ++i, ++cp) {
++			data = (data &gt;&gt; 8) | (*(uchar *)cp &lt;&lt; 24);
++		}
++
++		if ((rc = write_word(info, wp, data)) != 0) {
++			return (rc);
++		}
++		wp += 4;
++	}
++
++	/*
++	 * handle word aligned part
++	 */
++	while (cnt &gt;= 4) {
++		data = *((vulong*)src);
++		if ((rc = write_word(info, wp, data)) != 0) {
++			return (rc);
++		}
++		src += 4;
++		wp  += 4;
++		cnt -= 4;
++		if((cnt&amp;0xfff)==0x0)
++			printf(&quot;.&quot;);
++	}
++	printf(&quot;\n&quot;);
++	if (cnt == 0) {
++		return ERR_OK;
++	}
++
++	/*
++	 * handle unaligned tail bytes
++	 */
++	data = 0;
++	for (i=0, cp=wp; i&lt;4 &amp;&amp; cnt&gt;0; ++i, ++cp) {
++		data = (data &gt;&gt; 8) | (*src++ &lt;&lt; 24);
++		--cnt;
++	}
++	for (; i&lt;4; ++i, ++cp) {
++		data = (data &gt;&gt; 8) | (*(uchar *)cp &lt;&lt; 24);
++	}
++
++	return write_word(info, wp, data);
++
++}
+diff --git a/board/AndesTech/common/flib_flash.c b/board/AndesTech/common/flib_flash.c
+new file mode 100644
+index 0000000..826b3bb
+--- /dev/null
++++ b/board/AndesTech/common/flib_flash.c
+@@ -0,0 +1,721 @@
++/*
++ * (C) Copyright 2002
++ * Sysgo Real-Time Solutions, GmbH &lt;www.elinos.com&gt;
++ * Marius Groeger &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>&gt;
++ *
++ * Copyright (C) 2006 Andes Technology Corporation
++ * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
++ * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
++ *
++ * See file CREDITS for list of people who contributed to this
++ * project.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ */
++
++/************************************************************************
++* Copyright  Faraday Technology Corp 2002-2003.  All rights reserved.	*
++*-----------------------------------------------------------------------*
++* Name:flash.c								*
++* Description: Flash library routine					*
++* Author: Fred Chien							*
++* Date: 2002/03/01							*
++* Version:1.0								*
++*-----------------------------------------------------------------------*
++************************************************************************/
++
++#include &quot;../include/porting.h&quot;
++#include &quot;../include/flib_flash.h&quot;
++//#include &lt;flash.h&gt;
++
++/* add by Charles Tsai */
++void Do_Delay(unsigned count);
++/* end add */
++void Check_Toggle_Ready(unsigned char  *Dst);
++void Check_Toggle_ReadyHalfWord(unsigned short  *Dst);
++void Check_Toggle_ReadyWord(unsigned  *Dst);
++
++void fLib_Flash_ReadID(unsigned flash_type, unsigned base, unsigned BusWidth, unsigned* DDI1, unsigned* DDI2)
++{
++	if (flash_type == MX_Type)
++	{
++		switch(BusWidth)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base+0x555,0xaa);
++			cpe_outb(base+0x2aa,0x55);
++			cpe_outb(base+0x555,0x90);
++			Check_Toggle_Ready(base+0x00);
++			*DDI1 = cpe_inb(base+0x00);
++
++			cpe_outb(base+0x555,0xaa);
++			cpe_outb(base+0x2aa,0x55);
++			cpe_outb(base+0x555,0x90);
++			Check_Toggle_Ready(base+0x01);
++			*DDI2 = cpe_inb(base+0x01);
++			break;
++
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base+0x555*2,0xaaaa);
++			cpe_outw(base+0x2aa*2,0x5555);
++			cpe_outw(base+0x555*2,0x9090);
++			Check_Toggle_ReadyHalfWord(base+0x00);
++			*DDI1 = cpe_inw(base+0x00);
++
++			cpe_outw(base+0x555*2,0xaaaa);
++			cpe_outw(base+0x2aa*2,0x5555);
++			cpe_outw(base+0x555*2,0x9090);
++			Check_Toggle_ReadyHalfWord(base+0x02);
++			*DDI2 = cpe_inw(base+0x02);
++			break;
++
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base+0x555*4,0xaaaaaaaa);	// 0x1554
++			cpe_outl(base+0x2aa*4,0x55555555);	// 0xaa8
++			cpe_outl(base+0x555*4,0x90909090);
++			Check_Toggle_ReadyWord(base+0x00);
++			*DDI1 = cpe_inl(base+0x00);
++
++			cpe_outl(base+0x555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aa*4,0x55555555);
++			cpe_outl(base+0x555*4,0x90909090);
++			Check_Toggle_ReadyWord(base+0x04);
++			*DDI2 = cpe_inl(base+0x04);
++			break;
++		}
++	}
++
++	if (flash_type == SST_Type)
++	{
++		switch(BusWidth)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base+0x5555,0xaa);
++			cpe_outb(base+0x2aaa,0x55);
++			cpe_outb(base+0x5555,0x90);
++			Check_Toggle_Ready(base+0x00);
++			*DDI1 = cpe_inb(base+0x00);
++
++			cpe_outb(base+0x5555,0xaa);
++			cpe_outb(base+0x2aaa,0x55);
++			cpe_outb(base+0x5555,0x90);
++			Check_Toggle_Ready(base+0x00);
++			*DDI2 = cpe_inb(base+0x01);
++			break;
++
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base+0x5555*2,0xaaaa);
++			cpe_outw(base+0x2aaa*2,0x5555);
++			cpe_outw(base+0x5555*2,0x9090);
++			Check_Toggle_ReadyHalfWord(base+0x00);
++			*DDI1 = cpe_inw(base+0x00);
++
++			cpe_outw(base+0x5555*2,0xaaaa);
++			cpe_outw(base+0x2aaa*2,0x5555);
++			cpe_outw(base+0x5555*2,0x9090);
++			Check_Toggle_ReadyHalfWord(base+0x02);
++			*DDI2 = cpe_inw(base+0x02);
++			break;
++
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base+0x5555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aaa*4,0x55555555);
++			cpe_outl(base+0x5555*4,0x90909090);
++			Check_Toggle_ReadyWord(base+0x00);
++			*DDI1 = cpe_inl(base+0x00);
++
++			cpe_outl(base+0x5555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aaa*4,0x55555555);
++			cpe_outl(base+0x5555*4,0x90909090);
++			Check_Toggle_ReadyWord(base+0x04);
++			*DDI2 = cpe_inl(base+0x04);
++			break;
++		}
++	}
++		/* add by Charles Tsai */
++	if (flash_type == Intel_Type)
++	{
++		switch(BusWidth)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base+0x100,0x90);
++			*DDI1 = cpe_inb(base+0x00);
++			*DDI2 = cpe_inb(base+0x01);
++			cpe_outb(base+0x100,0xff);
++			break;
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base+0x100,0x9090);
++			*DDI1 = cpe_inw(base+0x00);
++			*DDI2 = cpe_inw(base+0x02);
++			cpe_outw(base+0x100,0xffff);
++			break;
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base+0x100,0x00900090);
++			*DDI1 = cpe_inl(base+0x00);
++			*DDI2 = cpe_inl(base+0x04);
++			cpe_outl(base+0x100,0x00ff00ff);
++			break;
++		}
++	}
++		/* end add */
++
++
++}
++
++void fLib_Flash_Reset(unsigned base, unsigned BusWidth)
++{
++	switch(BusWidth)
++	{
++	case FLASH_SINGLE:
++		cpe_outb(base,0xf0);
++		break;
++	case FLASH_DOUBLE:
++		cpe_outw(base,0xf0f0);
++		break;
++	case FLASH_FOUR:
++		//cpe_outl(base,0xf0f0f0f0);
++		cpe_outl(base+0x100,0x00ff00ff); /* modify by Charles Tsai */
++		break;
++	}
++}
++
++void fLib_Flash_ChipErase(unsigned flash_type, unsigned base, unsigned BusWidth)
++{
++		unsigned data;
++
++	if (flash_type == MX_Type)
++	{
++		switch(BusWidth)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base+0x555,0xaa);
++			cpe_outb(base+0x2aa,0x55);
++			cpe_outb(base+0x555,0x80);
++			cpe_outb(base+0x555,0xaa);
++			cpe_outb(base+0x2aa,0x55);
++			cpe_outb(base+0x555,0x10);
++			break;
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base+0x555*2,0xaaaa);
++			cpe_outw(base+0x2aa*2,0x5555);
++			cpe_outw(base+0x555*2,0x8080);
++			cpe_outw(base+0x555*2,0xaaaa);
++			cpe_outw(base+0x2aa*2,0x5555);
++			cpe_outw(base+0x555*2,0x1010);
++			break;
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base+0x555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aa*4,0x55555555);
++			cpe_outl(base+0x555*4,0x80808080);
++			cpe_outl(base+0x555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aa*4,0x55555555);
++			cpe_outl(base+0x555*4,0x10101010);
++			break;
++		}
++	}
++
++	if (flash_type == SST_Type)
++	{
++		switch(flash_type)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base+0x5555,0xaa);
++			cpe_outb(base+0x2aaa,0x55);
++			cpe_outb(base+0x5555,0x80);
++			cpe_outb(base+0x5555,0xaa);
++			cpe_outb(base+0x2aaa,0x55);
++			cpe_outb(base+0x5555,0x10);
++			break;
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base+0x5555*2,0xaaaa);
++			cpe_outw(base+0x2aaa*2,0x5555);
++			cpe_outw(base+0x5555*2,0x8080);
++			cpe_outw(base+0x5555*2,0xaaaa);
++			cpe_outw(base+0x2aaa*2,0x5555);
++			cpe_outw(base+0x5555*2,0x1010);
++			break;
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base+0x5555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aaa*4,0x55555555);
++			cpe_outl(base+0x5555*4,0x80808080);
++			cpe_outl(base+0x5555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aaa*4,0x55555555);
++			cpe_outl(base+0x5555*4,0x10101010);
++			break;
++		}
++	}
++
++		/* add by Charles Tsai */
++	if (flash_type == Intel_Type)
++	{
++		// Only erase the first sector
++		switch(BusWidth)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base,0x20);
++			cpe_outb(base,0xd0);
++			cpe_outb(base,0xff);
++
++		// read status register
++				//Do_Delay(0xffff);
++			cpe_outb(base,0x70);
++			data = cpe_inb(base);
++
++			while (data != 0x80) {
++				//Do_Delay(0xffff);
++				cpe_outb(base,0x70);
++				data=cpe_inb(base);
++			}
++			cpe_outb(base,0xff);
++
++			break;
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base,0x2020);
++			cpe_outw(base,0xd0d0);
++			cpe_outw(base,0xffff);
++
++		// read status register
++				//Do_Delay(0xffff);
++			cpe_outw(base,0x7070);
++			data = cpe_inw(base);
++
++			while (data != 0x8080) {
++				//Do_Delay(0xffff);
++				cpe_outw(base,0x7070);
++				data=cpe_inl(base);
++			}
++			cpe_outw(base,0xffff);
++
++			break;
++
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base,0x00200020);Do_Delay(0x30000);
++			cpe_outl(base,0x00d000d0);Do_Delay(0x30000);
++			cpe_outl(base,0x00ff00ff);Do_Delay(0x30000);
++
++			// read status register
++			Do_Delay(0x100000);
++			cpe_outl(base,0x00700070);
++			data = cpe_inl(base);
++			//ivan wang
++			while (data != 0x00800080) {
++			//while ( (data&amp;0xff) != 0x80) {
++				//Do_Delay(0xffff);
++				cpe_outl(base,0x00700070);
++				data=cpe_inl(base);
++			}
++			cpe_outl(base,0x00ff00ff);
++			break;
++		}
++	}
++
++	/* end add */
++}
++
++void fLib_Flash_SectorErase(unsigned flash_type, unsigned base, unsigned BusWidth, unsigned sector) {
++	unsigned data;
++
++	if (flash_type == MX_Type) {
++		switch(BusWidth)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base+0x555,0xaa);
++			cpe_outb(base+0x2aa,0x55);
++			cpe_outb(base+0x555,0x80);
++			cpe_outb(base+0x555,0xaa);
++			cpe_outb(base+0x2aa,0x55);
++			cpe_outb(base+sector,0x30);
++			break;
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base+0x555*2,0xaaaa);
++			cpe_outw(base+0x2aa*2,0x5555);
++			cpe_outw(base+0x555*2,0x8080);
++			cpe_outw(base+0x555*2,0xaaaa);
++			cpe_outw(base+0x2aa*2,0x5555);
++			cpe_outw(base+sector*2,0x3030);
++			break;
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base+0x555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aa*4,0x55555555);
++			cpe_outl(base+0x555*4,0x80808080);
++			cpe_outl(base+0x555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aa*4,0x55555555);
++			cpe_outl(base+sector*4,0x30303030);
++			break;
++		}
++	}
++
++	if (flash_type == SST_Type) {
++		switch(BusWidth)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base+0x5555,0xaa);
++			cpe_outb(base+0x2aaa,0x55);
++			cpe_outb(base+0x5555,0x80);
++			cpe_outb(base+0x5555,0xaa);
++			cpe_outb(base+0x2aaa,0x55);
++			cpe_outb(base+sector,0x30);
++			break;
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base+0x5555*2,0xaaaa);
++			cpe_outw(base+0x2aaa*2,0x5555);
++			cpe_outw(base+0x5555*2,0x8080);
++			cpe_outw(base+0x5555*2,0xaaaa);
++			cpe_outw(base+0x2aaa*2,0x5555);
++			cpe_outw(base+sector*2,0x3030);
++			break;
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base+0x5555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aaa*4,0x55555555);
++			cpe_outl(base+0x5555*4,0x80808080);
++			cpe_outl(base+0x5555*4,0xaaaaaaaa);
++			cpe_outl(base+0x2aaa*4,0x55555555);
++			cpe_outl(base+sector*4,0x30303030);
++			break;
++		}
++	}
++
++		/* add by Charles Tsai */
++	if (flash_type == Intel_Type) {
++		switch(BusWidth)
++		{
++		case FLASH_SINGLE: // 8 bit
++			cpe_outb(base+sector,0x20);
++			cpe_outb(base+sector,0xd0);
++
++			// read status register
++			//Do_Delay(0xff);
++			cpe_outb(base,0x70);
++			data = cpe_inb(base);
++
++			while (data != 0x80) {
++				//Do_Delay(0xff);
++				cpe_outb(base,0x70);
++				data=cpe_inb(base);
++			}
++			cpe_outb(base,0xff);
++			break;
++
++		case FLASH_DOUBLE: // double 16 bit
++			cpe_outw(base+sector,0x2020);
++			cpe_outw(base+sector,0xd0d0);
++
++			// read status register
++			//Do_Delay(0xff);
++			cpe_outw(base,0x7070);
++			data = cpe_inw(base);
++
++			while (data != 0x8080) {
++				//Do_Delay(0xff);
++				cpe_outw(base,0x7070);
++				data=cpe_inw(base);
++			}
++			cpe_outw(base,0xffff);
++
++			break;
++		case FLASH_FOUR:// four 32 bit
++			cpe_outl(base+sector,0x00200020);
++			cpe_outl(base+sector,0x00d000d0);
++
++			// read status register
++			//Do_Delay(0xff);
++			cpe_outl(base,0x00700070);
++			data = cpe_inl(base);
++//ivan
++			while (data != 0x00800080) {
++			//while ((data&amp;0xff) != 0x80) {
++				//Do_Delay(0xff);
++				cpe_outl(base,0x00700070);
++				data=cpe_inl(base);
++			}
++			cpe_outl(base,0x00ff00ff);
++
++			break;
++		}
++	}
++		/* end add */
++
++}
++
++// this function only use in FLASH_SINGLE
++void fLib_Flash_ProgramByte(unsigned flash_type, unsigned base, unsigned address, unsigned char data) {
++	volatile unsigned int s_reg = 0; /* add by Charles Tsai */
++
++	if (flash_type == MX_Type)
++	{
++		cpe_outb(base+0x555,0xaa);
++		cpe_outb(base+0x2aa,0x55);
++		cpe_outb(base+0x555,0xa0);
++		cpe_outb(address,data);
++
++		Check_Toggle_Ready((unsigned char  *)address);
++	}
++
++	if (flash_type == SST_Type)
++	{
++		cpe_outb(base+0x5555,0xaa);
++		cpe_outb(base+0x2aaa,0x55);
++		cpe_outb(base+0x5555,0xa0);
++		cpe_outb(address,data);
++
++		Check_Toggle_Ready((unsigned char  *)address);
++	}
++
++		/* add by Charles Tsai */
++		if (flash_type == Intel_Type)
++	{
++		cpe_outb(base,0x40);
++		cpe_outb(address,data);
++
++		//Do_Delay(0xff);
++		cpe_outb(base,0x70);
++		s_reg=cpe_inb(base);
++
++//ivan
++//		while (s_reg != 0x80) {
++		while ((s_reg&amp;0xff) != 0x80) {
++		  //Do_Delay(0xff);
++		  cpe_outb(base,0x70);
++		  s_reg=cpe_inb(base);
++		}
++
++		cpe_outl(base,0x00ff00ff);
++	}
++		/* end add */
++}
++/************************************************************************/
++/* PROCEDURE:	Check_Toggle_Ready					*/
++/*									*/
++/* During the internal program cycle, any consecutive read operation	*/
++/* on DQ6 will produce alternating 0's and 1's (i.e. toggling between	*/
++/* 0 and 1). When the program cycle is completed, DQ6 of the data will  */
++/* stop toggling. After the DQ6 data bit stops toggling, the device is  */
++/* ready for next operation.						*/
++/*									*/
++/* Input:								*/
++/*		Dst		must already be set-up by the caller	*/
++/*									*/
++/* Output:								*/
++/*		None							*/
++/************************************************************************/
++
++void Check_Toggle_Ready (unsigned char  *Dst)
++{
++	unsigned char Loop = 1;
++	unsigned char PreData;
++	unsigned char CurrData;
++	long long TimeOut = 0;
++
++	PreData = *Dst;
++	PreData = PreData &amp; 0x40;
++	while ((TimeOut&lt; 0x07FFFFFF) &amp;&amp; (Loop)) {
++		CurrData = *Dst;
++		CurrData = CurrData &amp; 0x40;
++		if (PreData == CurrData)
++			Loop = 0;	/* ready to exit the while loop */
++		PreData = CurrData;
++		TimeOut++;
++	}
++}
++
++// this function only use in FLASH_DOUBLE
++void fLib_Flash_ProgramHalfWord(unsigned flash_type, unsigned base, unsigned address, unsigned short data)
++{
++	volatile unsigned int s_reg = 0;
++
++	if (flash_type == MX_Type) {
++		cpe_outw(base+0x555*2,0xaaaa);
++		cpe_outw(base+0x2aa*2,0x5555);
++		cpe_outw(base+0x555*2,0xa0a0);
++		cpe_outw(address,data);
++		Check_Toggle_ReadyHalfWord((unsigned short *) (address));
++	}
++
++	if (flash_type == SST_Type) {
++
++		cpe_outw(base+0x5555*2,0xaaaa);
++		cpe_outw(base+0x2aaa*2,0x5555);
++		cpe_outw(base+0x5555*2,0xa0a0);
++		cpe_outw(address,data);
++
++		Check_Toggle_ReadyHalfWord((unsigned short *) (address));
++	}
++
++		/* add by Charles Tsai */
++	if (flash_type == Intel_Type) {
++		cpe_outw(base,0x4040);
++		cpe_outw(address,data);
++
++		//Do_Delay(0xff);
++		cpe_outw(base,0x7070);
++		s_reg=cpe_inw(base);
++//ivan
++//		while (s_reg != 0x8080) {
++		while ((s_reg&amp;0xff) != 0x80) {
++			//Do_Delay(0xff);
++			cpe_outw(base,0x7070);
++			s_reg=cpe_inw(base);
++		}
++
++		cpe_outw(base,0xffff);
++	}
++		/* end add */
++}
++
++void Check_Toggle_ReadyHalfWord(unsigned short  *Dst)
++{
++	unsigned char Loop = 1;
++	short PreData;
++	short CurrData;
++	long long TimeOut = 0;
++
++	PreData = *Dst;
++	PreData = PreData &amp; 0x4040;
++	while ((TimeOut&lt; 0x07FFFFFF) &amp;&amp; (Loop)) {
++		CurrData = *Dst;
++		CurrData = CurrData &amp; 0x4040;
++		if (PreData == CurrData)
++			Loop = 0;	/* ready to exit the while loop */
++		PreData = CurrData;
++		TimeOut++;
++	}
++}
++
++// this function only use in FLASH_FOUR
++void fLib_Flash_ProgramWord(unsigned flash_type, unsigned base, unsigned address, unsigned data)
++{
++		volatile unsigned int s_reg = 0;
++
++	if (flash_type == MX_Type) {
++		cpe_outl(base+0x555*4,0xaaaaaaaa);
++		cpe_outl(base+0x2aa*4,0x55555555);
++		cpe_outl(base+0x555*4,0xa0a0a0a0);
++		cpe_outl(address,data);
++
++		Check_Toggle_ReadyWord((unsigned  *) (address));
++	}
++
++	if (flash_type == SST_Type) {
++		cpe_outl(base+0x5555*4,0xaaaaaaaa);
++		cpe_outl(base+0x2aaa*4,0x55555555);
++		cpe_outl(base+0x5555*4,0xa0a0a0a0);
++
++		cpe_outl(address,data);
++
++		Check_Toggle_ReadyWord((unsigned  *) (address));
++	}
++
++		/* add by Charles Tsai */
++	if (flash_type == Intel_Type)
++	{
++		cpe_outl(base,0x00400040);
++		cpe_outl(address,data);
++
++		//Do_Delay(0xf);
++		cpe_outl(base,0x00700070);
++		s_reg=cpe_inl(base);
++
++//ivan
++		while (s_reg != 0x00800080) {
++		//while ((s_reg&amp;0xff) != 0x80) {
++		  //Do_Delay(0xf);
++		  cpe_outl(base,0x00700070);
++		  s_reg=cpe_inl(base);
++		}
++
++		cpe_outl(base,0x00ff00ff);
++	}
++		/* end add */
++}
++
++void Check_Toggle_ReadyWord(unsigned  *Dst)
++{
++	unsigned char Loop = 2;
++	unsigned PreData;
++	unsigned CurrData;
++	long long TimeOut = 0;
++
++
++	PreData = *Dst;
++	PreData = PreData &amp; 0x40404040;
++	while (Loop) {
++		CurrData = *Dst;
++		CurrData = CurrData &amp; 0x40404040;
++		if (PreData == CurrData)
++			Loop--;	/* ready to exit the while loop */
++		PreData = CurrData;
++		TimeOut++;
++	}
++
++}
++
++int Check_Toggle_ReadyWord1(unsigned base, unsigned programmed_Data, unsigned  *Dst)
++{
++	unsigned loopCounter;
++	unsigned TimeOutFlag;
++	unsigned ProgramOkFlag;
++	unsigned read_Data;
++	unsigned return_status;
++	unsigned i;
++
++	loopCounter = 0;
++	TimeOutFlag = 0;
++	ProgramOkFlag = 1;
++
++
++	while(1) {
++		read_Data = *Dst;
++		if (read_Data == programmed_Data) {
++			return_status = PROGRAM_OK;
++			break;
++		}
++
++		// delay
++		for (i = 0; i &lt; FLASH_PROGRAM_DELAY_CYCLE; i++);
++
++		if (loopCounter &gt;= FLASH_PROGRAM_LOOP_COUNTER) {
++			return_status = PROGRAM_NOT_OK;
++			break;
++		}
++
++		loopCounter++;
++	}// end of while
++
++	return return_status;
++}
++
++void fLib_Flash_ReadWord(unsigned address, unsigned* data)
++{
++	*data = cpe_inl(address);
++}
++
++void fLib_Flash_ReadHalfWord(unsigned address, unsigned short* data)
++{
++	*data = cpe_inw(address);
++}
++
++void fLib_Flash_ReadByte(unsigned address, unsigned char* data)
++{
++	*data = cpe_inb(address);
++}
++
++
++void Do_Delay(unsigned count)
++{
++	unsigned i;
++
++	for ( i = count; i&gt;0; i--);
++}
+diff --git a/board/AndesTech/common/flib_serial.c b/board/AndesTech/common/flib_serial.c
+new file mode 100644
+index 0000000..2b3df24
+--- /dev/null
++++ b/board/AndesTech/common/flib_serial.c
+@@ -0,0 +1,373 @@
++/*
++ * (C) Copyright 2002
++ * Sysgo Real-Time Solutions, GmbH &lt;www.elinos.com&gt;
++ * Marius Groeger &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>&gt;
++ *
++ * Copyright (C) 2006 Andes Technology Corporation
++ * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
++ * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
++ *
++ * See file CREDITS for list of people who contributed to this
++ * project.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ */
++
++/************************************************************************
++* Copyright  Faraday Technology Corp 2002-2003.  All rights reserved.	*
++*-----------------------------------------------------------------------*
++* Name:serial.c								*
++* Description: serial library routine					*
++* Author: Fred Chien							*
++************************************************************************/
++
++#include &lt;nds32_common.h&gt;
++#include &quot;../include/symbol.h&quot;
++#include &quot;../include/serial.h&quot;
++#include &quot;../include/porting.h&quot;
++
++#define outw 				cpe_outl
++#define inw				cpe_inl
++
++void LED_ShowHex(UINT32 u32HexValue)
++{
++	cpe_outl(NDS32_COMMON_DBG_ALPHA, u32HexValue);
++}
++
++UINT64 fLib_CurrentT1Tick()
++{
++	return 0;
++}
++
++#ifdef not_complete_yet
++UINT32 DebugSerialPort = NDS32_COMMON_UART1_BASE;
++UINT32 SystemSerialPort = NDS32_COMMON_UART2_BASE;
++#endif /* end_of_not */
++
++void fLib_SetSerialMode(UINT32 port, UINT32 mode)
++{
++	UINT32 mdr;
++
++	mdr = inw(port + SERIAL_MDR);
++	mdr &amp;= ~SERIAL_MDR_MODE_SEL;
++	outw(port + SERIAL_MDR, mdr | mode);
++}
++
++
++void fLib_EnableIRMode(UINT32 port, UINT32 TxEnable, UINT32 RxEnable)
++{
++	UINT32 acr;
++
++	acr = inw(port + SERIAL_ACR);
++	acr &amp;= ~(SERIAL_ACR_TXENABLE | SERIAL_ACR_RXENABLE);
++	if(TxEnable)
++		acr |= SERIAL_ACR_TXENABLE;
++	if(RxEnable)
++		acr |= SERIAL_ACR_RXENABLE;
++	outw(port + SERIAL_ACR, acr);
++}
++
++/*****************************************************************************/
++
++void fLib_SerialInit(UINT32 port, UINT32 baudrate, UINT32 parity,UINT32 num,UINT32 len)
++{
++	UINT32 lcr;
++
++	lcr = inw(port + SERIAL_LCR) &amp; ~SERIAL_LCR_DLAB;
++	/* Set DLAB=1 */
++	outw(port + SERIAL_LCR,SERIAL_LCR_DLAB);
++	/* Set baud rate */
++	outw(port + SERIAL_DLM, ((baudrate &amp; 0xf00) &gt;&gt; 8));
++	outw(port + SERIAL_DLL, (baudrate &amp; 0xff));
++
++	//clear orignal parity setting
++	lcr &amp;= 0xc0;
++
++	switch (parity)
++	{
++		case PARITY_NONE:
++			//do nothing
++			break;
++		case PARITY_ODD:
++			lcr|=SERIAL_LCR_ODD;
++			break;
++		case PARITY_EVEN:
++			lcr|=SERIAL_LCR_EVEN;
++			break;
++		case PARITY_MARK:
++			lcr|=(SERIAL_LCR_STICKPARITY|SERIAL_LCR_ODD);
++			break;
++		case PARITY_SPACE:
++			lcr|=(SERIAL_LCR_STICKPARITY|SERIAL_LCR_EVEN);
++			break;
++
++		default:
++			break;
++	}
++
++	if(num==2)
++		lcr|=SERIAL_LCR_STOP;
++
++	len-=5;
++
++	lcr|=len;
++
++	outw(port+SERIAL_LCR,lcr);
++}
++
++
++void fLib_SetSerialLoopback(UINT32 port, UINT32 onoff)
++{
++	UINT32 temp;
++
++	temp=inw(port+SERIAL_MCR);
++	if(onoff==ON)
++		temp|=SERIAL_MCR_LPBK;
++	else
++		temp&amp;=~(SERIAL_MCR_LPBK);
++
++	outw(port+SERIAL_MCR,temp);
++}
++
++void fLib_SetSerialFifoCtrl(UINT32 port, UINT32 level, UINT32 resettx, UINT32 resetrx)
++{
++	UINT8 fcr = 0;
++
++	fcr |= SERIAL_FCR_FE;
++
++	switch(level)
++	{
++		case 4:
++			fcr|=0x40;
++			break;
++		case 8:
++			fcr|=0x80;
++			break;
++		case 14:
++			fcr|=0xc0;
++			break;
++		default:
++			break;
++	}
++
++	if(resettx)
++		fcr|=SERIAL_FCR_TXFR;
++
++	if(resetrx)
++		fcr|=SERIAL_FCR_RXFR;
++
++	outw(port+SERIAL_FCR,fcr);
++}
++
++
++void fLib_DisableSerialFifo(UINT32 port)
++{
++	outw(port+SERIAL_FCR,0);
++}
++
++
++void fLib_SetSerialInt(UINT32 port, UINT32 IntMask)
++{
++	outw(port + SERIAL_IER, IntMask);
++}
++
++
++char fLib_GetSerialChar(UINT32 port)
++{
++	char Ch;
++	UINT32 status;
++
++	do
++	{
++		status=inw(port+SERIAL_LSR);
++	}
++	while (!((status &amp; SERIAL_LSR_DR)==SERIAL_LSR_DR));	// wait until Rx ready
++	Ch = inw(port + SERIAL_RBR);
++	return (Ch);
++}
++
++void fLib_PutSerialChar(UINT32 port, char Ch)
++{
++	UINT32 status;
++
++	do
++	{
++		status=inw(port+SERIAL_LSR);
++	} while (!((status &amp; SERIAL_LSR_THRE)==SERIAL_LSR_THRE));	// wait until Tx ready
++	outw(port + SERIAL_THR,Ch);
++}
++
++void fLib_PutSerialStr(UINT32 port, char *Str)
++{
++	char *cp;
++
++	for(cp = Str; *cp != 0; cp++)
++		fLib_PutSerialChar(port, *cp);
++}
++
++void fLib_Modem_waitcall(UINT32 port)
++{
++	fLib_PutSerialStr(port, &quot;ATS0=2\r&quot;);
++}
++
++void fLib_Modem_call(UINT32 port, char *tel)
++{
++	fLib_PutSerialStr(port, &quot;ATDT&quot;);
++	fLib_PutSerialStr(port,  tel);
++	fLib_PutSerialStr(port, &quot;\r&quot;);
++}
++
++int fLib_Modem_getchar(UINT32 port,int TIMEOUT)
++{
++	UINT64 start_time, middle_time, dead_time;
++	UINT32 status;
++	INT8 ch;
++	UINT32 n=0;
++
++	start_time = fLib_CurrentT1Tick();
++	dead_time = start_time + TIMEOUT;
++
++	do
++	{
++		if(n&gt;1000)
++		{
++			middle_time = fLib_CurrentT1Tick();
++			if (middle_time &gt; dead_time)
++				return 0x100;
++		}
++		status = inw(port + SERIAL_LSR);
++		n++;
++	}while (!((status &amp; SERIAL_LSR_DR)==SERIAL_LSR_DR));
++
++	ch = inw(port + SERIAL_RBR);
++	return (ch);
++}
++
++BOOL fLib_Modem_putchar(UINT32 port, INT8 Ch)
++{
++	UINT64 start_time, middle_time, dead_time;
++	UINT32 status;
++	UINT32 n=0;
++
++	start_time = fLib_CurrentT1Tick();
++	dead_time = start_time + 5;
++
++	do
++	{
++		if(n&gt;1000)
++		{
++			middle_time = fLib_CurrentT1Tick();
++			if (middle_time &gt; dead_time)
++				return FALSE;
++		}
++		status = inw(port + SERIAL_LSR);
++		n++;
++	} while (!((status &amp; SERIAL_LSR_THRE)==SERIAL_LSR_THRE));
++
++	outw(port + SERIAL_THR, Ch);
++
++	return TRUE;
++}
++
++void fLib_EnableSerialInt(UINT32 port, UINT32 mode)
++{
++UINT32 data;
++
++	data = inw(port + SERIAL_IER);
++	outw(port + SERIAL_IER, data | mode);
++}
++
++
++void fLib_DisableSerialInt(UINT32 port, UINT32 mode)
++{
++UINT32 data;
++
++	data = inw(port + SERIAL_IER);
++	mode = data &amp; (~mode);
++	outw(port + SERIAL_IER, mode);
++}
++
++UINT32 fLib_SerialIntIdentification(UINT32 port)
++{
++	return inw(port + SERIAL_IIR);
++}
++
++void fLib_SetSerialLineBreak(UINT32 port)
++{
++UINT32 data;
++
++	data = inw(port + SERIAL_LCR);
++	outw(port + SERIAL_LCR, data | SERIAL_LCR_SETBREAK);
++}
++
++void fLib_SetSerialLoopBack(UINT32 port,UINT32 onoff)
++{
++UINT32 temp;
++
++	temp = inw(port+SERIAL_MCR);
++	if(onoff == ON)
++		temp |= SERIAL_MCR_LPBK;
++	else
++		temp &amp;= ~(SERIAL_MCR_LPBK);
++
++	outw(port+SERIAL_MCR,temp);
++}
++
++void fLib_SerialRequestToSend(UINT32 port)
++{
++UINT32 data;
++
++	data = inw(port + SERIAL_MCR);
++	outw(port + SERIAL_MCR, data | SERIAL_MCR_RTS);
++}
++
++void fLib_SerialStopToSend(UINT32 port)
++{
++UINT32 data;
++
++	data = inw(port + SERIAL_MCR);
++	data &amp;= ~(SERIAL_MCR_RTS);
++	outw(port + SERIAL_MCR, data);
++}
++
++void fLib_SerialDataTerminalReady(UINT32 port)
++{
++UINT32 data;
++
++	data = inw(port + SERIAL_MCR);
++	outw(port + SERIAL_MCR, data | SERIAL_MCR_DTR);
++}
++
++void fLib_SerialDataTerminalNotReady(UINT32 port)
++{
++UINT32 data;
++
++	data = inw(port + SERIAL_MCR);
++	data &amp;= ~(SERIAL_MCR_DTR);
++	outw(port + SERIAL_MCR, data);
++}
++
++UINT32 fLib_ReadSerialLineStatus(UINT32 port)
++{
++	return inw(port + SERIAL_LSR);
++}
++
++UINT32 fLib_ReadSerialModemStatus(UINT32 port)
++{
++	return inw(port + SERIAL_MSR);
++}
++// End of file - serial.c
++
+diff --git a/board/AndesTech/common/fotg2xx.c b/board/AndesTech/common/fotg2xx.c
+new file mode 100644
+index 0000000..8fa6c9c
+--- /dev/null
++++ b/board/AndesTech/common/fotg2xx.c
+@@ -0,0 +1,60 @@
++/*
++ * FOTG2xx (Host Controller Driver) for USB on the Andes.
++ *
++ * Copyright (C) 2009 Andes Technology Corporation
++ * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
++ * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ */
++
++/*
++ * IMPORTANT NOTES
++ * 1 - you MUST define LITTLEENDIAN in the configuration file for the
++ *	 board or this driver will NOT work!
++ * 2 - this driver is intended for use with USB Mass Storage Devices
++ *	 (BBB) ONLY. There is NO support for Interrupt or Isochronous pipes!
++ */
++
++#include &lt;common.h&gt;
++#include &lt;usb.h&gt;
++
++#if defined(CONFIG_CMD_USB) &amp;&amp; !defined(CONFIG_PCI_OHCI) &amp;&amp; !defined(CONFIG_USB_OHCI_NEW)
++
++int usb_lowlevel_init(void)
++{
++}
++
++int usb_lowlevel_stop(void)
++{
++}
++
++int submit_bulk_msg(struct usb_device *dev, unsigned long pipe, void *buffer,int transfer_len)
++{
++}
++
++int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
++			int transfer_len,struct devrequest *setup)
++{
++}
++
++int submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
++			int transfer_len, int interval)
++{
++}
++
++
++#endif // CONFIG_CMD_USB
+diff --git a/board/AndesTech/common/ftmac100.c b/board/AndesTech/common/ftmac100.c
+new file mode 100644
+index 0000000..825031d
+--- /dev/null
++++ b/board/AndesTech/common/ftmac100.c
+@@ -0,0 +1,766 @@
++/*
++ * Copyright (C) 2009 Andes Technology Corporation
++ * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
++ * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ */
++
++// --------------------------------------------------------------------
++//	lmc83:	modified from smc91111.c (2002-11-29)
++// --------------------------------------------------------------------
++
++
++#include &lt;common.h&gt;
++#include &lt;asm/andesboot.h&gt;
++#include &lt;malloc.h&gt;
++#include &lt;command.h&gt;
++#include &quot;../include/porting.h&quot;
++#include &quot;../include/ftmac100.h&quot;
++#include &lt;net.h&gt;
++
++
++#ifdef CONFIG_DRIVER_FTMAC100
++
++// Use power-down feature of the chip
++#define POWER_DOWN	0
++
++static unsigned char ftmac100_mac_addr[] = {0x00, 0x41, 0x71, 0x99, 0x00, 0x00};
++
++static const char version[] =
++	&quot;Faraday FTMAC100 Driver, (Linux Kernel 2.4) 10/18/02 - by Faraday\n&quot;;
++
++#define inl(addr) 			(*((volatile u32 *)(addr)))
++#define inw(addr)			(*((volatile u16 *)(addr)))
++#define outl(value, addr)  	(*((volatile u32 *)(addr)) = value)
++#define outb(value, addr)	(*((volatile u8 *)(addr)) = value)
++
++struct net_device dev_eth0;
++int tx_rx_cnt = 0;
++/*
++ *
++ * Configuration options, for the experienced user to change.
++ *
++ */
++/*
++ * DEBUGGING LEVELS
++ *
++ * 0 for normal operation
++ * 1 for slightly more details
++ * &gt;2 for various levels of increasingly useless information
++ *	2 for interrupt tracking, status flags
++ *	3 for packet info
++ *	4 for complete packet dumps
++ */
++
++#define DO_PRINT(args...) printk(args)
++
++//#define FTMAC100_DEBUG 5 // Must be defined in makefile
++
++#if (FTMAC100_DEBUG &gt; 2 )
++#define PRINTK3(args...) DO_PRINT(args)
++#else
++#define PRINTK3(args...)
++#endif
++
++#if FTMAC100_DEBUG &gt; 1
++#define PRINTK2(args...) DO_PRINT(args)
++#else
++#define PRINTK2(args...)
++#endif
++
++#ifdef FTMAC100_DEBUG
++#define PRINTK(args...) DO_PRINT(args)
++#else
++#define PRINTK(args...)
++#endif
++
++
++///#define FTMAC100_TIMER
++
++/*
++ *
++ * The internal workings of the driver.  If you are changing anything
++ * here with the SMC stuff, you should have the datasheet and know
++ * what you are doing.
++ *
++ */
++#define CARDNAME &quot;FTMAC100&quot;
++
++#ifdef FTMAC100_TIMER
++	static struct timer_list ftmac100_timer;
++#endif
++
++#define ETH_ZLEN 60
++
++#ifdef  CONFIG_SMC_USE_32_BIT
++#define USE_32_BIT
++#else
++#undef USE_32_BIT
++#endif
++/*
++ *
++ * The driver can be entered at any of the following entry points.
++ *
++ */
++
++extern int eth_init(bd_t *bd);
++extern void eth_halt(void);
++extern int eth_rx(void);
++extern int eth_send(volatile void *packet, int length);
++
++
++int initialized = 0;
++/*
++ * This is called by  register_netdev().  It is responsible for
++ * checking the portlist for the FTMAC100 series chipset.  If it finds
++ * one, then it will initialize the device, find the hardware information,
++ * and sets up the appropriate device parameters.
++ * NOTE: Interrupts are *OFF* when this procedure is called.
++ *
++ * NB:This shouldn't be static since it is referred to externally.
++ */
++int ftmac100_init(struct net_device *dev);
++
++/*
++ * This is called by  unregister_netdev().  It is responsible for
++ * cleaning up before the driver is finally unregistered and discarded.
++ */
++void ftmac100_destructor(struct net_device *dev);
++
++/*
++ * The kernel calls this function when someone wants to use the net_device,
++ * typically 'ifconfig ethX up'.
++ */
++static int ftmac100_open(struct net_device *dev);
++
++
++/*
++ * This is called by the kernel in response to 'ifconfig ethX down'.  It
++ * is responsible for cleaning up everything that the open routine
++ * does, and maybe putting the card into a powerdown state.
++ */
++static int ftmac100_close(struct net_device *dev);
++
++
++/*
++ * This is a separate procedure to handle the receipt of a packet, to
++ * leave the interrupt code looking slightly cleaner
++ */
++inline static int ftmac100_rcv( struct net_device *dev );
++
++
++
++/*
++ * Internal routines
++ */
++
++
++
++/*
++ * A rather simple routine to print out a packet for debugging purposes.
++ */
++#if FTMAC100_DEBUG &gt; 2
++static void print_packet( byte *, int );
++#endif
++
++
++
++
++/* this does a soft reset on the device */
++static void ftmac100_reset( struct net_device *dev );
++
++/* Enable Interrupts, Receive, and Transmit */
++static void ftmac100_enable( struct net_device *dev );
++
++/* this puts the device in an inactive state */
++static void ftmac100_shutdown( unsigned int ioaddr );
++
++/*
++ * Routines to Read and Write the PHY Registers across the
++ * MII Management Interface
++ */
++
++void print_mac(unsigned char *);
++
++void put_mac(int base, unsigned char *mac_addr)
++{
++	int val;
++
++	val = ((u32)mac_addr[0])&lt;&lt;8 | (u32)mac_addr[1];
++	outl(val, base + MAC_MADR_REG);
++	val = ((((u32)mac_addr[2])&lt;&lt;24)&amp;0xff000000) |
++		((((u32)mac_addr[3])&lt;&lt;16)&amp;0xff0000) |
++		((((u32)mac_addr[4])&lt;&lt;8)&amp;0xff00)  |
++		((((u32)mac_addr[5])&lt;&lt;0)&amp;0xff);
++	outl(val, base + MAC_LADR_REG);
++}
++
++void get_mac(int base, unsigned char *mac_addr)
++{
++	int val;
++	val = inl(base + MAC_MADR_REG);
++	mac_addr[0] = (val&gt;&gt;8)&amp;0xff;
++	mac_addr[1] = val&amp;0xff;
++	val = inl(base + MAC_LADR_REG);
++	mac_addr[2] = (val&gt;&gt;24)&amp;0xff;
++	mac_addr[3] = (val&gt;&gt;16)&amp;0xff;
++	mac_addr[4] = (val&gt;&gt;8)&amp;0xff;
++	mac_addr[5] = val&amp;0xff;
++}
++
++/*
++ * Print the Ethernet address
++ */
++void print_mac(unsigned char *mac_addr)
++{
++	int i;
++
++	DO_PRINT(&quot;ADDR: &quot;);
++	for (i = 0; i &lt; 5; i++)
++	{
++		DO_PRINT(&quot;%2.2x:&quot;, mac_addr[i] );
++	}
++	DO_PRINT(&quot;%2.2x \n&quot;, mac_addr[5] );
++}
++
++
++
++
++#ifdef FTMAC100_TIMER
++static void ftmac100_timer_func(unsigned long dummy)
++{
++	struct net_device *dev = (struct net_device *)ftmac100_timer.data;
++	struct ftmac100_local *lp = (struct ftmac100_local *)dev-&gt;priv;
++	int i;
++	int rxdma_own = 0;
++
++	DO_PRINT(&quot;lp-&gt;rx_idx = %d\n&quot;, lp-&gt;rx_idx);
++	for (i=0; i&lt;RXDES_NUM; ++i)
++	{
++		rxdma_own += lp-&gt;rx_descs[i].RXDMA_OWN;
++		DO_PRINT(&quot;%d &quot;, lp-&gt;rx_descs[i].RXDMA_OWN);
++		if (i%10==9)
++		{
++			DO_PRINT(&quot;\n&quot;);
++		}
++	}
++	DO_PRINT(&quot;\n&quot;);
++
++	mod_timer(&amp;ftmac100_timer, jiffies + FTMAC100_STROBE_TIME);
++}
++
++#endif
++
++/*
++ * Function: ftmac100_reset( struct device* dev )
++ * Purpose:
++ *	This sets the SMC91111 chip to its normal state, hopefully from whatever
++ *	mess that any other DOS driver has put it in.
++ *
++ * Maybe I should reset more registers to defaults in here?  SOFTRST  should
++ * do that for me.
++ *
++ * Method:
++ *	1.  send a SOFT RESET
++ *	2.  wait for it to finish
++ *	3.  enable autorelease mode
++ *	4.  reset the memory management unit
++ *	5.  clear all interrupts
++ */
++static void ftmac100_reset( struct net_device* dev )
++{
++	//struct ftmac100_local *lp 	= (struct ftmac100_local *)dev-&gt;priv;
++	unsigned int	ioaddr = dev-&gt;base_addr;
++
++	PRINTK2(&quot;%s:ftmac100_reset\n&quot;, dev-&gt;name);
++
++	outl( SW_RST_bit, ioaddr + MACCR_REG );
++
++#ifdef not_complete_yet
++	/* Setup for fast accesses if requested */
++	/* If the card/system can't handle it then there will */
++	/* be no recovery except for a hard reset or power cycle */
++	if (dev-&gt;dma) {
++		outw( inw( ioaddr + CONFIG_REG ) | CONFIG_NO_WAIT,	ioaddr + CONFIG_REG );
++	}
++#endif /* end_of_not */
++
++	/* this should pause enough for the chip to be happy */
++	for (; (inl( ioaddr + MACCR_REG ) &amp; SW_RST_bit) != 0; ) {
++		mdelay(10);
++		PRINTK3(&quot;RESET: reset not complete yet\n&quot; );
++	}
++
++	/* Disable all interrupts */
++	outl( 0, ioaddr + IMR_REG );
++}
++
++
++/*
++ * Function: ftmac100_enable
++ * Purpose: let the chip talk to the outside work
++ * Method:
++ *	1.  Enable the transmitter
++ *	2.  Enable the receiver
++ *	3.  Enable interrupts
++ */
++static void ftmac100_enable( struct net_device *dev )
++{
++	unsigned int ioaddr 	= dev-&gt;base_addr;
++	int i;
++	struct ftmac100_local *lp 	= (struct ftmac100_local *)dev-&gt;priv;
++
++	PRINTK2(&quot;%s:ftmac100_enable\n&quot;, dev-&gt;name);
++
++	for (i=0; i&lt;RXDES_NUM; ++i) {
++		lp-&gt;rx_descs[i].RXDMA_OWN = OWNBY_FTMAC100;			// owned by FTMAC100
++	}
++	lp-&gt;rx_idx = 0;
++
++	for (i=0; i&lt;TXDES_NUM; ++i) {
++		lp-&gt;tx_descs[i].TXDMA_OWN = OWNBY_SOFTWARE;			// owned by software
++	}
++	lp-&gt;tx_idx = 0;
++
++
++	/* set the MAC address */
++	put_mac(ioaddr, dev-&gt;dev_addr);
++
++	outl( lp-&gt;rx_descs_dma, ioaddr + RXR_BADR_REG);
++	outl( lp-&gt;tx_descs_dma, ioaddr + TXR_BADR_REG);
++	outl( 0x00001010, ioaddr + ITC_REG);					// this value is recommend by document
++	///outl( 0x0, ioaddr + ITC_REG);
++	///outl( (1UL&lt;&lt;TXPOLL_CNT)|(1UL&lt;&lt;RXPOLL_CNT), ioaddr + APTC_REG);
++	outl( (0UL&lt;&lt;TXPOLL_CNT)|(0x1&lt;&lt;RXPOLL_CNT), ioaddr + APTC_REG);
++	outl( 0x1df, ioaddr + DBLAC_REG );					// this value is recommend by document
++	outl( inl(FCR_REG)|0x1, ioaddr + FCR_REG );				// enable flow control
++	outl( inl(BPR_REG)|0x1, ioaddr + BPR_REG );				// enable back pressure register
++
++	/* now, enable interrupts */
++	outl (
++			PHYSTS_CHG_bit	|
++			AHB_ERR_bit		|
++///			RPKT_LOST_bit	|
++///			RPKT_SAV_bit	|
++///			XPKT_LOST_bit	|
++///			XPKT_OK_bit		|
++///			NOTXBUF_bit		|
++///			XPKT_FINISH_bit	|
++///			NORXBUF_bit		|
++			RPKT_FINISH_bit
++			,ioaddr + IMR_REG
++	);
++
++	/// enable trans/recv,...
++	outl(lp-&gt;maccr_val, ioaddr + MACCR_REG );
++
++#ifdef FTMAC100_TIMER
++	/// waiting to do: &#168;&#226;&#173;&#211;&#165;H&#164;W&#170;&#186;&#186;&#244;&#184;&#244;&#165;d
++	init_timer(&amp;ftmac100_timer);
++	ftmac100_timer.function = ftmac100_timer_func;
++	ftmac100_timer.data = (unsigned long)dev;
++	mod_timer(&amp;ftmac100_timer, jiffies + FTMAC100_STROBE_TIME);
++#endif
++}
++
++/*
++ * Function: ftmac100_shutdown
++ * Purpose:  closes down the SMC91xxx chip.
++ * Method:
++ *	1. zero the interrupt mask
++ *	2. clear the enable receive flag
++ *	3. clear the enable xmit flags
++ *
++ * TODO:
++ *   (1) maybe utilize power down mode.
++ *	Why not yet?  Because while the chip will go into power down mode,
++ *	the manual says that it will wake up in response to any I/O requests
++ *	in the register space.   Empirical results do not show this working.
++ */
++static void ftmac100_shutdown( unsigned int ioaddr )
++{
++	/// &#179;]&#169;w interrupt mask register
++	outl( 0, ioaddr + IMR_REG );
++
++	/// enable trans/recv,...
++	outl( 0, ioaddr + MACCR_REG );
++}
++
++
++
++static int ftmac100_send_packet( void *packet, int length, struct net_device *dev )
++{
++	struct ftmac100_local *lp 	= (struct ftmac100_local *)dev-&gt;priv;
++	unsigned int ioaddr 	= dev-&gt;base_addr;
++	volatile TX_DESC *cur_desc;
++
++
++	PRINTK3(&quot;%s:ftmac100_wait_to_send_packet\n&quot;, dev-&gt;name);
++	cur_desc = &amp;lp-&gt;tx_descs[lp-&gt;tx_idx];
++
++	/* there is no empty transmit descriptor */
++	for (; cur_desc-&gt;TXDMA_OWN != OWNBY_SOFTWARE; )
++	{
++		DO_PRINT(&quot;Transmitting busy\n&quot;);
++		udelay(10);
++	}
++	length = ETH_ZLEN &lt; length ? length : ETH_ZLEN;
++	length = length &gt; TX_BUF_SIZE ? TX_BUF_SIZE : length;
++
++#if FTMAC100_DEBUG &gt; 2
++///	DO_PRINT(&quot;Transmitting Packet\n&quot;);
++///	print_packet( packet, length );
++#endif
++	/* waiting to do: slice data into many segments*/
++	memcpy((char *)cur_desc-&gt;VIR_TXBUF_BADR, packet, length);
++
++	cur_desc-&gt;TXBUF_Size = length;
++	cur_desc-&gt;LTS = 1;
++	cur_desc-&gt;FTS = 1;
++	cur_desc-&gt;TX2FIC = 0;
++	cur_desc-&gt;TXIC = 0;
++	cur_desc-&gt;TXDMA_OWN = OWNBY_FTMAC100;
++	outl( 0xffffffff, ioaddr + TXPD_REG);
++	lp-&gt;tx_idx = (lp-&gt;tx_idx + 1) % TXDES_NUM;
++
++
++	return length;
++}
++
++/*
++ * smc_destructor( struct net_device * dev )
++ *   Input parameters:
++ *	dev, pointer to the device structure
++ *
++ *   Output:
++ *	None.
++ */
++void ftmac100_destructor(struct net_device *dev)
++{
++	PRINTK3(&quot;%s:ftmac100_destructor\n&quot;, dev-&gt;name);
++}
++
++/*
++ * Open and Initialize the board
++ *
++ * Set up everything, reset the card, etc ..
++ *
++ */
++static int ftmac100_open(struct net_device *dev)
++{
++	unsigned int	ioaddr = dev-&gt;base_addr;
++
++	PRINTK2(&quot;%s:ftmac100_open\n&quot;, dev-&gt;name);
++
++#ifdef MODULE
++	MOD_INC_USE_COUNT;
++#endif
++
++	/* reset the hardware */
++	ftmac100_reset( dev );
++	ftmac100_enable( dev );
++
++	/* set the MAC address */
++	put_mac(ioaddr, dev-&gt;dev_addr);
++
++	return 0;
++}
++
++#ifdef USE_32_BIT
++void
++insl32(r,b,l)
++{
++	int __i ;
++	dword *__b2;
++
++	__b2 = (dword *) b;
++	for (__i = 0; __i &lt; l; __i++) {
++		*(__b2 + __i) = *(dword *)(r+0x10000300);
++	}
++}
++#endif
++
++/*
++ * ftmac100_rcv -  receive a packet from the card
++ *
++ * There is ( at least ) a packet waiting to be read from
++ * chip-memory.
++ *
++ * o Read the status
++ * o If an error, record it
++ * o otherwise, read in the packet
++ */
++static int ftmac100_rcv(struct net_device *dev)
++{
++	struct ftmac100_local *lp = (struct ftmac100_local *)dev-&gt;priv;
++	int 	packet_length;
++	volatile RX_DESC *cur_desc;
++	int 	cpy_length;
++	int		start_idx;
++	int		seg_length;
++	int 	rcv_cnt;
++
++	///PRINTK3(&quot;%s:ftmac100_rcv\n&quot;, dev-&gt;name);
++	for (rcv_cnt=0; rcv_cnt&lt;1; ++rcv_cnt) {
++		packet_length = 0;
++		start_idx = lp-&gt;rx_idx;
++
++		for (; (cur_desc = &amp;lp-&gt;rx_descs[lp-&gt;rx_idx])-&gt;RXDMA_OWN==0; ) {
++			lp-&gt;rx_idx = (lp-&gt;rx_idx+1)%RXDES_NUM;
++			if (cur_desc-&gt;FRS) {
++				if (cur_desc-&gt;RX_ERR || cur_desc-&gt;CRC_ERR || cur_desc-&gt;FTL || cur_desc-&gt;RUNT || cur_desc-&gt;RX_ODD_NB) {
++					cur_desc-&gt;RXDMA_OWN = 1;	// this frame has been processed, return this to hardware
++					return 0;
++				}
++				packet_length = cur_desc-&gt;ReceiveFrameLength;		// normal frame
++			}
++
++			// packet's last frame
++			if ( cur_desc-&gt;LRS ) {
++				break;
++			}
++		}
++
++		if (packet_length&gt;0)			// received one packet
++		{
++			byte		* data;
++
++			data = NetRxPackets[0];
++			cpy_length = 0;
++			for (; start_idx!=lp-&gt;rx_idx; start_idx=(start_idx+1)%RXDES_NUM) {
++				seg_length = min(packet_length - cpy_length, RX_BUF_SIZE);
++				memcpy(data+cpy_length, (char *)lp-&gt;rx_descs[start_idx].VIR_RXBUF_BADR, seg_length);
++				cpy_length += seg_length;
++				lp-&gt;rx_descs[start_idx].RXDMA_OWN = 1;		// this frame has been processed, return this to hardware
++			}
++			NetReceive(NetRxPackets[0], packet_length);
++#if	FTMAC100_DEBUG &gt; 4
++			DO_PRINT(&quot;Receiving Packet\n&quot;);
++			print_packet( data, packet_length );
++#endif
++			return packet_length;
++		}
++	}
++	return 0;
++}
++
++
++
++/*
++ * ftmac100_close
++ *
++ * this makes the board clean up everything that it can
++ * and not talk to the outside world.   Caused by
++ * an 'ifconfig ethX down'
++ *
++ */
++static int ftmac100_close(struct net_device *dev)
++{
++	//netif_stop_queue(dev);
++	//dev-&gt;start = 0;
++
++	PRINTK2(&quot;%s:ftmac100_close\n&quot;, dev-&gt;name);
++
++	/* clear everything */
++	ftmac100_shutdown( dev-&gt;base_addr );
++
++	/* Update the statistics here. */
++#ifdef MODULE
++	MOD_DEC_USE_COUNT;
++#endif
++
++	return 0;
++}
++
++
++/* PHY CONTROL AND CONFIGURATION */
++
++
++
++#if FTMAC100_DEBUG &gt; 2
++static void print_packet( byte * buf, int length )
++{
++#if 1
++#if FTMAC100_DEBUG &gt; 3
++	int i;
++	int remainder;
++	int lines;
++#endif
++
++	DO_PRINT(&quot;Packet of length %d \n&quot;, length );
++
++#if FTMAC100_DEBUG &gt; 3
++	lines = length / 16;
++	remainder = length % 16;
++
++	for ( i = 0; i &lt; lines ; i ++ ) {
++		int cur;
++
++		for ( cur = 0; cur &lt; 8; cur ++ ) {
++			byte a, b;
++
++			a = *(buf ++ );
++			b = *(buf ++ );
++			DO_PRINT(&quot;%02x%02x &quot;, a, b );
++		}
++		DO_PRINT(&quot;\n&quot;);
++	}
++	for ( i = 0; i &lt; remainder/2 ; i++ ) {
++		byte a, b;
++
++		a = *(buf ++ );
++		b = *(buf ++ );
++		DO_PRINT(&quot;%02x%02x &quot;, a, b );
++	}
++	DO_PRINT(&quot;\n&quot;);
++#endif
++#endif
++}
++#endif
++
++
++void ftmac100_ringbuf_alloc(struct ftmac100_local *lp)
++{
++	int i;
++
++	lp-&gt;rx_descs = kmalloc( sizeof(RX_DESC)*(RXDES_NUM+1), GFP_DMA|GFP_KERNEL );
++	if (lp-&gt;rx_descs == NULL) {
++		DO_PRINT(&quot;Receive Ring Buffer allocation error\n&quot;);
++		BUG();
++	}
++	lp-&gt;rx_descs =  (RX_DESC *)((int)(((char *)lp-&gt;rx_descs)+sizeof(RX_DESC)-1)&amp;0xfffffff0);
++	lp-&gt;rx_descs_dma = virt_to_phys(lp-&gt;rx_descs);
++	memset(lp-&gt;rx_descs, 0, sizeof(RX_DESC)*RXDES_NUM);
++
++
++	lp-&gt;rx_buf = kmalloc( RX_BUF_SIZE*RXDES_NUM, GFP_DMA|GFP_KERNEL );
++	if (lp-&gt;rx_buf == NULL || (( (u32)lp-&gt;rx_buf % 4)!=0)) {
++		DO_PRINT(&quot;Receive Ring Buffer allocation error, lp-&gt;rx_buf = %x\n&quot;, lp-&gt;rx_buf);
++		BUG();
++	}
++	lp-&gt;rx_buf_dma = virt_to_phys(lp-&gt;rx_buf);
++
++
++	for (i=0; i&lt;RXDES_NUM; ++i) {
++		lp-&gt;rx_descs[i].RXBUF_Size = RX_BUF_SIZE;
++		lp-&gt;rx_descs[i].EDOTR = 0;			// not last descriptor
++		lp-&gt;rx_descs[i].RXBUF_BADR = lp-&gt;rx_buf_dma+RX_BUF_SIZE*i;
++		lp-&gt;rx_descs[i].VIR_RXBUF_BADR = virt_to_phys( lp-&gt;rx_descs[i].RXBUF_BADR );
++	}
++	lp-&gt;rx_descs[RXDES_NUM-1].EDOTR = 1;			// is last descriptor
++
++
++	lp-&gt;tx_descs = kmalloc( sizeof(TX_DESC)*(TXDES_NUM+1), GFP_DMA|GFP_KERNEL );
++	if (lp-&gt;tx_descs == NULL) {
++		DO_PRINT(&quot;Transmit Ring Buffer allocation error\n&quot;);
++		BUG();
++	}
++	lp-&gt;tx_descs =  (TX_DESC *)((int)(((char *)lp-&gt;tx_descs)+sizeof(TX_DESC)-1)&amp;0xfffffff0);
++	lp-&gt;tx_descs_dma = virt_to_phys(lp-&gt;tx_descs);
++	memset(lp-&gt;tx_descs, 0, sizeof(TX_DESC)*TXDES_NUM);
++
++	lp-&gt;tx_buf = kmalloc( TX_BUF_SIZE*TXDES_NUM, GFP_DMA|GFP_KERNEL );
++	if (lp-&gt;tx_buf == NULL || (( (u32)lp-&gt;tx_buf % 4)!=0)) {
++		DO_PRINT(&quot;Transmit Ring Buffer allocation error\n&quot;);
++		BUG();
++	}
++	lp-&gt;tx_buf_dma = virt_to_phys(lp-&gt;tx_buf);
++
++	for (i=0; i&lt;TXDES_NUM; ++i) {
++		lp-&gt;tx_descs[i].EDOTR = 0;					// not last descriptor
++		lp-&gt;tx_descs[i].TXBUF_BADR = lp-&gt;tx_buf_dma+TX_BUF_SIZE*i;
++		lp-&gt;tx_descs[i].VIR_TXBUF_BADR = virt_to_phys( lp-&gt;tx_descs[i].TXBUF_BADR );
++	}
++	lp-&gt;tx_descs[TXDES_NUM-1].EDOTR = 1;					// is last descriptor
++	PRINTK(&quot;lp-&gt;rx_descs = %x, lp-&gt;rx_rx_descs_dma = %x\n&quot;, lp-&gt;rx_descs, lp-&gt;rx_descs_dma);
++	PRINTK(&quot;lp-&gt;rx_buf = %x, lp-&gt;rx_buf_dma = %x\n&quot;, lp-&gt;rx_buf, lp-&gt;rx_buf_dma);
++	PRINTK(&quot;lp-&gt;tx_descs = %x, lp-&gt;tx_rx_descs_dma = %x\n&quot;, lp-&gt;tx_descs, lp-&gt;tx_descs_dma);
++	PRINTK(&quot;lp-&gt;tx_buf = %x, lp-&gt;tx_buf_dma = %x\n&quot;, lp-&gt;tx_buf, lp-&gt;tx_buf_dma);
++}
++
++//added by ivan
++void ahb_init()
++{
++#ifdef CONFIG_ADP_AG101_110_PLATFORM
++	*(unsigned int *)0x90100040=0x96700000;
++#endif
++}
++
++int eth_init(bd_t *bd)
++{
++	struct ftmac100_local *lp;
++	int i;
++
++	ahb_init();
++
++	if (initialized == 0)
++	{
++		initialized = 1;
++
++		dev_eth0.base_addr = NDS32_COMMON_FTMAC100_BASE;
++		/* Initialize the private structure. */
++		dev_eth0.priv = (void *)malloc(sizeof(struct ftmac100_local));
++		if (dev_eth0.priv == NULL)
++		{
++			DO_PRINT(&quot;out of memory\n&quot;);
++			return 0;
++		}
++
++
++		/* initialize ftmac100_local */
++		memset(dev_eth0.priv, 0, sizeof(struct ftmac100_local));
++		strcpy(dev_eth0.name, &quot;eth0&quot;);
++		lp = (struct ftmac100_local *)dev_eth0.priv;
++		lp-&gt;maccr_val = FULLDUP_bit | CRC_APD_bit | MDC_SEL_bit | RCV_EN_bit | XMT_EN_bit  | RDMA_EN_bit	| XDMA_EN_bit;
++		///lp-&gt;maccr_val = FULLDUP_bit | CRC_APD_bit | MDC_SEL_bit | RCV_EN_bit | RDMA_EN_bit ;		// receive only
++
++		ftmac100_ringbuf_alloc(lp);
++	}
++	if (memcmp(bd-&gt;bi_enetaddr, &quot;\0\0\0\0\0\0&quot;, 6) == 0)
++		get_mac(NDS32_COMMON_FTMAC100_BASE, bd-&gt;bi_enetaddr);
++	else
++		put_mac(NDS32_COMMON_FTMAC100_BASE, bd-&gt;bi_enetaddr);
++	for (i=0; i&lt;6; ++i)
++		dev_eth0.dev_addr[i] = bd-&gt;bi_enetaddr[i];
++	print_mac(bd-&gt;bi_enetaddr);
++	ftmac100_open(&amp;dev_eth0);
++
++	return 0;
++}
++
++void eth_halt()
++{
++	if (initialized == 1) {
++		ftmac100_close(&amp;dev_eth0);
++	}
++}
++
++int eth_rx()
++{
++	return ftmac100_rcv(&amp;dev_eth0);
++}
++
++int eth_send(volatile void *packet, int length)
++{
++	return ftmac100_send_packet(packet, length, &amp;dev_eth0);
++}
++
++void ftmac100_dummy()
++{
++	printf(&quot;enter ftmac100_dummy\n&quot;);
++}
++#endif
+diff --git a/board/AndesTech/common/ftpci100.c b/board/AndesTech/common/ftpci100.c
+new file mode 100644
+index 0000000..b117d3c
+--- /dev/null
++++ b/board/AndesTech/common/ftpci100.c
+@@ -0,0 +1,712 @@
++/*
++ * Copyright (C) 2005 Andes Technology Corporation
++ * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
++ * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
++ *
++ * filename: ftpci100.c
++ * description: the low-level code for FTPCI100 AHB-PCI Bridge,
++ *		implement to meet the u-boot/driver/pci/pci.c.
++ *
++ * history:
++ *	- 2009.04.02, move the code from bootrom to u-boot (Hill).
++ *
++ * See file CREDITS for list of people who contributed to this
++ * project.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ */
++
++#include &lt;ftpci100.h&gt;
++#include &lt;common.h&gt;
++#include &lt;asm/andesboot.h&gt;
++#include &lt;malloc.h&gt;
++#include &lt;command.h&gt;
++
++#if defined(CONFIG_CMD_PCI) &amp;&amp; defined (CONFIG_DRIVER_FTPCI100)
++
++/*
++ * register IOs
++ */
++typedef struct
++{
++	volatile unsigned int offset[4096];	 /* 4K * 4 = SZ_16K */
++} __regbase32;
++
++typedef struct
++{
++	volatile unsigned short offset[4096];	/* 4K * 2 = SZ_8K */
++} __regbase16;
++
++typedef struct
++{
++	volatile unsigned char offset[4096];	/* 4K * 1 = SZ_4K */
++} __regbase8;
++
++#define REG32(a)		((__regbase32 *)((a)&amp;~4095))-&gt;offset[((a)&amp;4095)&gt;&gt;2]
++#define REG16(a)		((__regbase16 *)((a)&amp;~4095))-&gt;offset[((a)&amp;4095)&gt;&gt;1]
++#define REG8(a)			((__regbase8  *)((a)&amp;~4095))-&gt;offset[((a)&amp;4095)&gt;&gt;0]
++
++#define inb(a)			REG8(a)
++#define inhw(a)			REG16(a)
++#define inw(a)			REG32(a)
++
++#define outb(a,v)		(REG8(a) = (unsigned char)(v))
++#define outhw(a,v)		(REG16(a) = (unsigned short)(v))
++#define outw(a,v)		(REG32(a) = (unsigned int)(v))
++
++static struct pci_controller sg_PCIHost; //[PCI_MAX_BUS_NUM];
++/*
++ * static members
++ */
++static UINT32 flib_ReadPCICfgSpaceWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg);
++static UINT16 flib_ReadPCICfgSpaceHalfWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg);
++static UINT8 flib_ReadPCICfgSpaceByte(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg);
++static void flib_WritePCICfgSpaceWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg, UINT32 dt);
++static void flib_WritePCICfgSpaceHalfWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg, UINT16 dt);
++static void flib_WritePCICfgSpaceByte(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg, UINT8 dt);
++
++static UINT32 sg_PCIRegBase;
++static PCIResourceMapStruct sg_PCIRscMap_s;
++static PCIBridgeDMAResourceMapStruct sg_PCI_Bridge_DMA_s;
++
++
++static void flib_PCI_INT_Init(void)
++{
++#if 0
++	unsigned int u32i, *pu32;
++
++	pu32 = (unsigned int*)PCI_CARD_MEM_BASE;
++
++	printf(&quot;test start \r\n&quot;);
++	for(u32i=0; u32i&lt;0x1000; u32i++)
++		pu32[u32i] = u32i;
++	for(u32i=0; u32i&lt;0x1000; u32i++)
++		if(pu32[u32i] != u32i)
++			printf(&quot;err: %08Xh	W:%04Xh	R:%04Xh \r\n&quot;, &amp;pu32[u32i], u32i, pu32[u32i]);
++	printf(&quot;test finish \r\n&quot;);
++#endif
++#if 0
++	PCIBridgeINTPollingIndex=0;
++//opened by <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
++	fLib_CloseInt(FIQ_PCI);
++	//Ext_CloseInt(FIQ_PCI);
++
++
++#ifdef PCI_INT_USE_ACTIVE_H
++//opened by <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
++		fLib_SetIntTrig(FIQ_PCI,LEVEL,H_ACTIVE);
++		//Ext_SetIntTrig(FIQ_PCI,LEVEL,H_ACTIVE);
++
++#else
++//opened by <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
++		fLib_SetIntTrig(FIQ_PCI,LEVEL,L_ACTIVE);
++		//Ext_SetIntTrig(FIQ_PCI,LEVEL,L_ACTIVE);
++#endif
++//opened by <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
++	fLib_ConnectInt(FIQ_PCI, (PrHandler)flib_PCI_IntHandler);
++	//Ext_ConnectInt(FIQ_PCI, (PrHandler)flib_PCI_IntHandler);
++//opened by <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
++	fLib_EnableInt(FIQ_PCI);
++	//Ext_EnableInt(FIQ_PCI);
++#endif
++}
++
++
++static void InitPCIBridge(UINT32 RegBase)
++{
++	UINT32 u32TestValue1;
++
++	// 1.Set the PCI Reg Base
++	sg_PCIRegBase = RegBase;
++
++	// 2.disable the Interrupt Mask (INTA/INTB/INTC/INTD)
++	outw(NDS32_COMMON_PCI_IO_BASE+PCI_CONFIG_ADDR_REG ,(PCI_BRIDGE_CFG_SPACE_CONTROL|0x80000000));
++	u32TestValue1 = inw(NDS32_COMMON_PCI_IO_BASE+PCI_CONFIG_DATA_REG);
++
++#if 0
++	u32TestValue1 |= PCI_ENABLE_INTA_INTB_INTC_INTD;
++#else
++	u32TestValue1 &amp;= ~PCI_ALL_INTs_MASK; // disable INTs
++#endif
++	outw(NDS32_COMMON_PCI_IO_BASE+PCI_CONFIG_ADDR_REG, (PCI_BRIDGE_CFG_SPACE_CONTROL|0x80000000));
++	outw(NDS32_COMMON_PCI_IO_BASE+PCI_CONFIG_DATA_REG, u32TestValue1);
++
++	// 3.Init PCI Bridge INT (do nothing)
++	flib_PCI_INT_Init();
++
++}
++
++
++
++/*
++ * * Function Name:	flib_PCIBridgeMemoryRequest
++ * * Description: 	1.Fix mem for the DMA (PCI.h)
++ *			2.Set the PCI Bridge Configuration Space
++ */
++static void flib_PCIBridgeMemoryRequest(void)
++{
++	PCIDeviceIDStruct PCIDeviceID;
++
++	sg_PCI_Bridge_DMA_s.PCI_DMA_Base_Address = PCI_BRIDGE_DMA_START_ADDRESS;
++	PCIDeviceID.BusNum = PCIDeviceID.DevNum = PCIDeviceID.FunNum = 0x00;
++	flib_WritePCICfgSpaceWord(PCIDeviceID, PCI_BRIDGE_CFG_SPACE_MEM1_BA,
++		PCI_BRIDGE_DMA_START_SIZE_VALUE);
++
++	sg_PCI_Bridge_DMA_s.PCI_DMA_Start_Pointer = (UINT8*)PCI_BRIDGE_DMA_START_ADDRESS;
++	sg_PCI_Bridge_DMA_s.PCI_DMA_Size_Remain = PCI_BRIDGE_DMA_SIZE*1024*1024;
++}
++
++
++void flib_DisablePCIDevice(PCIDeviceIDStruct PCIDeviceID)
++{
++	UINT32 CMDType;
++	PCIDeviceID.RegNum = PCI_CSH_COMMAND_REG;
++	CMDType = flib_ReadPCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG);
++	flib_WritePCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG, CMDType &amp; ~(UINT32)(PCI_CMD_IO_ENABLE|PCI_CMD_MEM_ENABLE));
++}
++
++
++void flib_EnablePCIDevice(PCIDeviceIDStruct PCIDeviceID)
++{
++	UINT32 CMDType;
++	PCIDeviceID.RegNum = PCI_CSH_COMMAND_REG;
++	CMDType = flib_ReadPCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG);
++	flib_WritePCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG, CMDType | PCI_CMD_IO_ENABLE | PCI_CMD_MEM_ENABLE);
++}
++
++
++void flib_SetPCIMaster(PCIDeviceIDStruct PCIDeviceID)
++{
++	UINT32 CMDType;
++	PCIDeviceID.RegNum = PCI_CSH_COMMAND_REG;
++	CMDType = flib_ReadPCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG);
++	flib_WritePCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG, CMDType | PCI_CMD_BUS_MASTER_ENABLE);
++}
++
++
++/*
++ * * Function Name: flib_AssignPCIResource
++ * * Description: It will assign the PCI Device resource of the:
++ *				1.IO Resourse
++ *				2.Mem Resource
++ */
++void flib_AssignPCIResource
++(
++	PCIDeviceIDStruct PCIDeviceID , UINT32 *PciMemStart, UINT32 *PciIoStart
++)
++{
++	UINT32	lw, i, j, Reg, BaseAddrReg, BaseSize;
++	UINT32	dwAlignmentSize;
++
++	for (i = 0 ; i &lt; PCI_MAX_BAR_NUM ; i++)
++	{
++		Reg = PCI_CSH_BASE_ADDR_REG + (i * 4);
++		flib_WritePCICfgSpaceWord(PCIDeviceID, Reg, 0xFFFFFFFF);
++		lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, Reg);
++		print_pci(&quot;%08Xh \r\n&quot;, lw);
++
++		if ((lw == 0) || ((lw &amp; 0xffffffff) == 0xffffffff))
++		{
++			continue;
++		}
++		else
++		{
++			if ((lw &amp; 0x01) != 0x00)		 /* it's IO base */
++			{
++				print_pci(&quot;it's IO base\n\r&quot;);//<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
++				lw &gt;&gt;= 2;
++				for (j=2; j &lt; 32; j++)
++				{
++					if ((lw &amp; 0x01) == 0x01) // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
++						break;
++					lw &gt;&gt;= 1;
++				}
++				BaseSize = 1 &lt;&lt; j;
++				if (BaseSize&gt;=PCI_IO_SPACE_ALIGNMENT)
++						dwAlignmentSize=BaseSize;
++				else	dwAlignmentSize=PCI_IO_SPACE_ALIGNMENT;
++
++				if ((*PciIoStart % dwAlignmentSize) != 0)
++					*PciIoStart = ((*PciIoStart / dwAlignmentSize) + 1) * dwAlignmentSize;
++
++				BaseAddrReg = *PciIoStart;
++				*PciIoStart += BaseSize;
++				flib_WritePCICfgSpaceWord(PCIDeviceID, Reg, BaseAddrReg);
++				print_pci(&quot;	B:%02u.D:%02u.F:%02u	Reg:%08Xh	BaseAddrReg:%08Xh\r\n&quot;,
++					PCIDeviceID.BusNum, PCIDeviceID.DevNum, PCIDeviceID.FunNum, Reg, BaseAddrReg);
++			}
++			else if ((lw &amp; 0x01) != 0x01)		/* it's Memory base */
++			{
++				print_pci(&quot;it's Memory base\n\r&quot;);//<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
++				lw &gt;&gt;= 4;
++				for (j=4; j &lt; 32; j++)
++				{
++					if ((lw &amp; 0x01) == 0x01) // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
++						break;
++					lw &gt;&gt;= 1;
++				}
++				BaseSize = 1 &lt;&lt; j;
++
++				if (BaseSize&gt;=PCI_MEM_SPACE_ALIGNMENT)
++						dwAlignmentSize=BaseSize;
++				else	dwAlignmentSize=PCI_MEM_SPACE_ALIGNMENT;
++
++				if ((*PciMemStart % dwAlignmentSize) != 0)
++					*PciMemStart = ((*PciMemStart / dwAlignmentSize) + 1) * dwAlignmentSize;
++
++				BaseAddrReg = *PciMemStart;
++				flib_WritePCICfgSpaceWord(PCIDeviceID, Reg, BaseAddrReg);
++				print_pci(&quot;	B:%02u.D:%02u.F:%02u	Reg:%08Xh	BaseAddrReg:%08Xh\r\n&quot;,
++					PCIDeviceID.BusNum, PCIDeviceID.DevNum, PCIDeviceID.FunNum, Reg, BaseAddrReg);
++
++				*PciMemStart += BaseSize;
++			}
++		}
++	}
++}
++
++BOOL flib_FindNextPCIDevice(PCIDeviceIDStruct CurrDevID,PCIDeviceIDStruct *NextDevID)
++{
++	UINT16 VendorID;
++	UINT8 HeaderType;
++
++	/* read vendor id to check whether this PCI device exists or not */
++	VendorID = flib_ReadPCICfgSpaceHalfWord(CurrDevID, PCI_CSH_VENDOR_ID_REG);
++	if ((VendorID != 0x0) &amp;&amp; (VendorID != 0xFFFF))
++	{
++		//This device is exist, then it will get the counter of the Dev number and Fun number
++		printf(&quot;\r\n+ FindNextPCIDev,	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n&quot;,
++			CurrDevID.BusNum, CurrDevID.DevNum, CurrDevID.FunNum, VendorID);
++
++		//1.To determine single_function/multi_function
++		HeaderType = flib_ReadPCICfgSpaceByte(CurrDevID, PCI_CSH_HEADER_TYPE_REG);
++		/* the bit 7 of header type is 1, it it multi function device */
++		if (HeaderType &amp; PCI_HEADER_TYPE_MULTI_FUNCTION)
++		{
++			printf(&quot;multi-func \r\n&quot;);
++			CurrDevID.FunNum++;
++			if (CurrDevID.FunNum &gt;= PCI_MAX_FUNCTION_NUM)
++				CurrDevID.DevNum++;
++		}
++		else
++		{
++			printf(&quot;single-func \r\n&quot;);
++			CurrDevID.DevNum++;
++			CurrDevID.FunNum = 0;
++		}
++
++		printf(&quot;\r\n- FindNextPCIDev,	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n&quot;,
++			CurrDevID.BusNum, CurrDevID.DevNum, CurrDevID.FunNum, VendorID);
++
++	}
++	else
++	{
++		//printf(&quot;%s[Ln.%u] invalid Vendor ID: %04Xh /r/n&quot;, __FILE__, __LINE__, VendorID);
++		/* if this PCI device does not exist, find PCI device from the beginning */
++		CurrDevID.BusNum = 0;
++		CurrDevID.DevNum = 0;
++		CurrDevID.FunNum = 0;
++	}
++
++	for (;CurrDevID.BusNum &lt; PCI_MAX_BUS_NUM; CurrDevID.BusNum++, CurrDevID.DevNum=0)
++		for (;CurrDevID.DevNum &lt; PCI_MAX_DEVICE_NUM; CurrDevID.DevNum++, CurrDevID.FunNum=0)
++			for (;CurrDevID.FunNum &lt; PCI_MAX_FUNCTION_NUM; CurrDevID.FunNum++)
++			{
++				VendorID = flib_ReadPCICfgSpaceHalfWord(CurrDevID, PCI_CSH_VENDOR_ID_REG);
++
++				if ((VendorID != 0x0) &amp;&amp; (VendorID != 0xFFFF))
++				{
++					*NextDevID = CurrDevID;
++					return TRUE;
++				}
++			}
++
++	return FALSE;
++}
++
++
++
++static void flib_AssignPCIResource_hill(void)
++{
++	PCIDeviceIDStruct CurrDevID_st;
++	UINT16 VendorID;
++	UINT8 HeaderType;
++
++	CurrDevID_st.BusNum = 0;
++	CurrDevID_st.DevNum = 1;
++	CurrDevID_st.FunNum = 0;
++
++	/* read vendor id to check whether this PCI device exists or not */
++	for (;CurrDevID_st.BusNum &lt; PCI_MAX_BUS_NUM; CurrDevID_st.BusNum++, CurrDevID_st.DevNum=0)
++		for (;CurrDevID_st.DevNum &lt; PCI_MAX_DEVICE_NUM; CurrDevID_st.DevNum++, CurrDevID_st.FunNum=0)
++			for (;CurrDevID_st.FunNum &lt; PCI_MAX_FUNCTION_NUM; CurrDevID_st.FunNum++)
++			{
++				VendorID = flib_ReadPCICfgSpaceHalfWord(CurrDevID_st, PCI_CSH_VENDOR_ID_REG);
++				if ((VendorID != 0x0) &amp;&amp; (VendorID != 0xFFFF))
++				{
++					flib_DisablePCIDevice(CurrDevID_st);
++					print_pci(&quot;\r\n	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n&quot;,
++						CurrDevID_st.BusNum, CurrDevID_st.DevNum, CurrDevID_st.FunNum, VendorID);
++					flib_AssignPCIResource(CurrDevID_st,
++						&amp;sg_PCIRscMap_s.PciMem0Addr, &amp;sg_PCIRscMap_s.PciIOAddr);
++
++					flib_EnablePCIDevice(CurrDevID_st);
++					flib_SetPCIMaster(CurrDevID_st);
++				}
++			}
++
++}
++
++
++// scan device and print the Vendor ID / Device ID
++static void flib_scan_device(void)
++{
++	UINT16 u16VendorID, u16DevID;
++	PCIDeviceIDStruct CurrDevID;
++	UINT8 u8HeadType;
++
++	for(CurrDevID.BusNum=0; CurrDevID.BusNum &lt; PCI_MAX_BUS_NUM; CurrDevID.BusNum++)
++		for (CurrDevID.DevNum=0; CurrDevID.DevNum &lt; PCI_MAX_DEVICE_NUM; CurrDevID.DevNum++)
++			for (CurrDevID.FunNum=0;CurrDevID.FunNum &lt; PCI_MAX_FUNCTION_NUM; CurrDevID.FunNum++)
++			{
++				u16VendorID = flib_ReadPCICfgSpaceHalfWord(CurrDevID, PCI_CSH_VENDOR_ID_REG);
++				u16DevID = flib_ReadPCICfgSpaceHalfWord(CurrDevID, PCI_CSH_DEVICE_ID_REG);
++				u8HeadType = flib_ReadPCICfgSpaceByte(CurrDevID, PCI_CSH_HEADER_TYPE_REG);
++
++				if(0 == u16VendorID)
++					printf(&quot;VID == 0 \r\n&quot;);
++				else if(0xFFFF != u16DevID)
++				{
++					printf(&quot;Bus: %02Xh	Dev: %02Xh	Func: %02Xh \r\n&quot;,
++						CurrDevID.BusNum, CurrDevID.DevNum, CurrDevID.FunNum);
++					printf(&quot;	VID: %04Xh	DevID: %04Xh	%s\r\n&quot;, u16VendorID, u16DevID,
++						(u8HeadType&amp;0x80)?&quot;Multi-Fun&quot;:&quot;Single-Fun&quot;);
++				}
++			}
++}
++
++static void flib_PCI_InitPCIDevice(void)
++{
++	PCIDeviceIDStruct PCIDeviceID;
++
++	// 1.Init InitPCIBridge
++	InitPCIBridge(NDS32_COMMON_PCI_IO_BASE);
++
++	// 2.Set start Address of the I/O and Mem
++	sg_PCIRscMap_s.PciIOAddr=PCI_CARD_IO_BASE;
++	sg_PCIRscMap_s.PciMem0Addr=PCI_CARD_MEM_BASE;
++
++#if 0
++	// 3.Reserve Mem for DMA, write Base/Size to the PCI Bridge Configuration Space
++	flib_PCIBridgeMemoryRequest();
++
++	// 4.Assign the Resource &amp; Enable PCI DEVICE &amp; Start PCI Device
++	PCIDeviceID.BusNum = PCIDeviceID.DevNum = PCIDeviceID.FunNum = 0;
++	// device 0 has been assigned resource in step.3.
++	while(flib_FindNextPCIDevice(PCIDeviceID, &amp;PCIDeviceID))
++	{
++		flib_AssignPCIResource(PCIDeviceID, &amp;sg_PCIRscMap_s.PciMem0Addr, &amp;sg_PCIRscMap_s.PciIOAddr);
++		flib_EnablePCIDevice(PCIDeviceID);
++		flib_SetPCIMaster(PCIDeviceID);
++	}
++#else
++	PCIDeviceID.BusNum = 0;
++	PCIDeviceID.DevNum = 0;
++	PCIDeviceID.FunNum = 0;
++	flib_WritePCICfgSpaceWord(PCIDeviceID, PCI_BRIDGE_CFG_SPACE_MEM1_BA,
++		PCI_INBOUND_MEM_BASE &amp; (~0xFFF0000) | PCI_INBOUND_MEM_256MB);
++	print_pci(&quot;%X \r\n&quot;, PCI_INBOUND_MEM_BASE &amp; (~0xFFF0000) | PCI_INBOUND_MEM_256MB);
++
++	//flib_scan_device();
++	flib_AssignPCIResource_hill();
++#endif
++}
++
++static UINT32 flib_ReadPCICfgSpaceWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg)
++{
++	PCIDeviceID.RegNum = Reg;
++	PCIDeviceID.Enable = 1;
++	outw(sg_PCIRegBase + PCI_CONFIG_ADDR_REG, *(UINT32 *)((void *)&amp;PCIDeviceID)); // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
++	return inw(sg_PCIRegBase+PCI_CONFIG_DATA_REG);
++}
++
++static UINT16 flib_ReadPCICfgSpaceHalfWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg)
++{
++	UINT32 lw;
++
++	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc));
++	switch(Reg % 4)
++	{
++		case 0:
++		case 1:
++			lw &amp;= 0x0000FFFF;
++			break;
++		case 2:
++		case 3:
++			lw &amp;= 0xFFFF0000;
++			lw = lw &gt;&gt; 16;
++			break;
++	}
++
++	return (UINT16)lw;
++}
++
++
++static UINT8 flib_ReadPCICfgSpaceByte(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg)
++{
++	UINT32 lw;
++
++	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc));
++	switch(Reg % 4)
++	{
++		case 0:
++			lw &amp;= 0x000000FF;
++			break;
++		case 1:
++			lw &amp;= 0x0000FF00;
++			lw = lw &gt;&gt; 8;
++			break;
++		case 2:
++			lw &amp;= 0x00FF0000;
++			lw = lw &gt;&gt; 16;
++			break;
++		case 3:
++			lw &amp;= 0xFF000000;
++			lw = lw &gt;&gt; 24;
++			break;
++	}
++
++	return (UINT8)lw;
++}
++
++static void flib_WritePCICfgSpaceWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg, UINT32 dt)
++{
++	PCIDeviceID.RegNum = Reg;
++	PCIDeviceID.Enable = 1;
++
++	outw(sg_PCIRegBase + PCI_CONFIG_ADDR_REG,	*(UINT32 *)((void *)&amp;PCIDeviceID));
++	outw(sg_PCIRegBase + PCI_CONFIG_DATA_REG, dt);
++}
++
++static void flib_WritePCICfgSpaceHalfWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg, UINT16 dt)
++{
++	UINT32 lw;
++
++	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc));
++	switch(Reg % 4)
++	{
++		case 0:
++		case 1:
++			lw &amp;= 0xFFFF0000;
++			lw += dt;
++			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
++			break;
++		case 2:
++		case 3:
++			lw &amp;= 0x0000FFFF;
++			lw += (UINT32)(((UINT32)dt) &lt;&lt; 16);
++			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
++			break;
++	}
++}
++
++static void flib_WritePCICfgSpaceByte(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg, UINT8 dt)
++{
++	UINT32 lw;
++
++	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc));
++	switch(Reg % 4)
++	{
++		case 0:
++			lw &amp;= 0xFFFFFF00;
++			lw += dt;
++			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
++			break;
++		case 1:
++			lw &amp;= 0xFFFF00FF;
++			lw += (UINT32)(((UINT32)dt) &lt;&lt; 8);
++			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
++			break;
++		case 2:
++			lw &amp;= 0xFF00FFFF;
++			lw += (UINT32)(((UINT32)dt) &lt;&lt; 16);
++			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
++			break;
++		case 3:
++			lw &amp;= 0x00FFFFFF;
++			lw += (UINT32)(((UINT32)dt) &lt;&lt; 24);
++			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
++			break;
++	}
++}
++
++int flib_read_byte(struct pci_controller *pPciHC, pci_dev_t PciDev, int where, u8 *pu8Dat)
++{
++	PCIDeviceIDStruct DevId;
++
++	DevId.BusNum = PCI_BUS(PciDev);
++	DevId.DevNum= PCI_DEV(PciDev);
++	DevId.FunNum = PCI_FUNC(PciDev);
++	*pu8Dat = flib_ReadPCICfgSpaceByte(DevId, where);
++	return 0;
++}
++
++int flib_read_word(struct pci_controller *pPciHC, pci_dev_t PciDev, int where, u16 *pu16Dat)
++{
++	PCIDeviceIDStruct DevId;
++
++	DevId.BusNum = PCI_BUS(PciDev);
++	DevId.DevNum= PCI_DEV(PciDev);
++	DevId.FunNum = PCI_FUNC(PciDev);
++	*pu16Dat = flib_ReadPCICfgSpaceHalfWord(DevId, where);
++	return 0;
++}
++
++int flib_read_dword(struct pci_controller *pPciHC, pci_dev_t PciDev, int where, u32 *pu32Dat)
++{
++	PCIDeviceIDStruct DevId;
++
++	DevId.BusNum = PCI_BUS(PciDev);
++	DevId.DevNum= PCI_DEV(PciDev);
++	DevId.FunNum = PCI_FUNC(PciDev);
++	*pu32Dat = flib_ReadPCICfgSpaceWord(DevId, where);
++	return 0;
++}
++
++int flib_write_byte(struct pci_controller *pPciHC, pci_dev_t PciDev, int where, u8 u8Dat)
++{
++	PCIDeviceIDStruct DevId;
++
++	DevId.BusNum = PCI_BUS(PciDev);
++	DevId.DevNum= PCI_DEV(PciDev);
++	DevId.FunNum = PCI_FUNC(PciDev);
++	flib_WritePCICfgSpaceByte(DevId, where, u8Dat);
++	return 0;
++}
++
++int flib_write_word(struct pci_controller *pPciHC, pci_dev_t PciDev, int where, u16 u16Dat)
++{
++	PCIDeviceIDStruct DevId;
++
++	DevId.BusNum = PCI_BUS(PciDev);
++	DevId.DevNum= PCI_DEV(PciDev);
++	DevId.FunNum = PCI_FUNC(PciDev);
++	flib_WritePCICfgSpaceHalfWord(DevId, where, u16Dat);
++	return 0;
++}
++
++int flib_write_dword(struct pci_controller *pPciHC, pci_dev_t PciDev, int where, u32 u32Dat)
++{
++	PCIDeviceIDStruct DevId;
++
++	DevId.BusNum = PCI_BUS(PciDev);
++	DevId.DevNum= PCI_DEV(PciDev);
++	DevId.FunNum = PCI_FUNC(PciDev);
++	flib_WritePCICfgSpaceWord(DevId, where, u32Dat);
++	return 0;
++}
++
++/*
++ * exposed APIs
++ */
++
++// low-level init routine, called by /drivers/pci/pci.c - pci_init.
++void pci_init_board(void)
++{
++	struct pci_controller *host = &amp;sg_PCIHost;
++
++	flib_PCI_InitPCIDevice();
++
++	memset(host, 0, sizeof(struct pci_controller));
++
++	/*
++	 * Register the hose
++	 */
++	host-&gt;first_busno = 0;
++	host-&gt;last_busno = 0xff;
++
++	/*pci_setup_indirect(host,
++			(sg_PCIRegBase + PCI_CONFIG_ADDR_REG),
++			(sg_PCIRegBase + PCI_CONFIG_DATA_REG));
++	*/
++
++#if 0
++	/* System memory space */
++	pci_set_region (host-&gt;regions + 0,
++			AP1000_SYS_MEM_START, AP1000_SYS_MEM_START,
++			AP1000_SYS_MEM_SIZE,
++			PCI_REGION_MEM | PCI_REGION_SYS_MEMORY);
++
++	/* PCI Memory space */
++	pci_set_region (host-&gt;regions + 1,
++			PSII_PCI_MEM_BASE, PSII_PCI_MEM_BASE,
++			PSII_PCI_MEM_SIZE, PCI_REGION_MEM);
++
++	host-&gt;region_count = 2;
++#else
++	#if 0
++	/* PCI memory space */
++	pci_set_region(host-&gt;regions + 1,
++				PCI_CARD_MEM_BASE,
++				PCI_CARD_MEM_BASE,
++				PCI_CARD_MEM_TOTAL_SIZE,
++				PCI_REGION_MEM);
++
++	/* PCI IO space */
++	pci_set_region(host-&gt;regions + 2,
++				PCI_CARD_IO_BASE,
++				PCI_CARD_IO_BASE,
++				0x100000-0x1000,
++				PCI_REGION_IO);
++
++	host-&gt;region_count = 2;
++	#else
++	/* System space */
++	pci_set_region(host-&gt;regions + 0,
++				PCI_BRIDGE_DMA_START_ADDRESS,
++				PCI_BRIDGE_DMA_START_ADDRESS,
++				PCI_BRIDGE_DMA_START_SIZE_VALUE - PCI_BRIDGE_DMA_START_ADDRESS,
++				PCI_REGION_MEM | PCI_REGION_SYS_MEMORY);
++
++	/* PCI memory space */
++	pci_set_region(host-&gt;regions + 1,
++				PCI_CARD_MEM_BASE,
++				PCI_CARD_MEM_BASE,
++				PCI_CARD_MEM_TOTAL_SIZE,
++				PCI_REGION_MEM);
++
++	/* PCI IO space */
++	pci_set_region(host-&gt;regions + 2,
++				PCI_CARD_IO_BASE,
++				PCI_CARD_IO_BASE,
++				0x100000-0x1000,
++				PCI_REGION_IO);
++
++	host-&gt;region_count = 3;
++#endif
++#endif
++
++	/* No IO Memory space	- for now */
++	pci_set_ops (host,
++			 flib_read_byte, flib_read_word, flib_read_dword,
++			 flib_write_byte, flib_write_word, flib_write_dword);
++
++	pci_register_hose (host);
++
++	host-&gt;last_busno = pci_hose_scan (host);
++}
++
++#endif
+diff --git a/board/AndesTech/common/serial.c b/board/AndesTech/common/serial.c
+new file mode 100644
+index 0000000..ebd6c52
+--- /dev/null
++++ b/board/AndesTech/common/serial.c
+@@ -0,0 +1,141 @@
++/*
++ * (C) Copyright 2002
++ * Gary Jennejohn, DENX Software Engineering, &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">gj at denx.de</A>&gt;
++ *
++ * Copyright (C) 2009 Andes Technology Corporation
++ * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#include &lt;asm/andesboot.h&gt;
++#include &lt;asm/global_data.h&gt;
++#include &quot;../include/symbol.h&quot;
++#include &quot;../include/porting.h&quot;
++#include &quot;../include/serial.h&quot;
++
++DECLARE_GLOBAL_DATA_PTR;
++
++/*
++ * librarys copy from flib
++ */
++
++#ifdef CONFIG_SERIAL1
++	UINT32 DebugSerialPort = NDS32_COMMON_UART1_BASE;
++#elif CONFIG_SERIAL2
++	UINT32 DebugSerialPort = NDS32_COMMON_UART2_BASE;
++#else
++	#error &quot;Bad: you didn't configure serial ...&quot;
++#endif
++
++
++unsigned int br[] = {1562, 780, 390, 194, 32, 15};
++void serial_setbrg(void)
++{
++	unsigned int reg = 0;
++
++	if (gd-&gt;baudrate == 9600)
++	{
++		reg = NDS32_COMMON_BAUD_9600;
++	}
++	else if (gd-&gt;baudrate == 19200)
++	{
++		reg = NDS32_COMMON_BAUD_19200;
++	}
++	else if (gd-&gt;baudrate == 38400)
++	{
++		reg = NDS32_COMMON_BAUD_38400;
++	}
++	else if (gd-&gt;baudrate == 57600)
++	{
++		reg = NDS32_COMMON_BAUD_57600;
++	}
++#if (SYS_CLK == 22118400)
++	else if (gd-&gt;baudrate == 115200)
++	{
++		reg = NDS32_COMMON_BAUD_115200;
++	}
++#endif
++	else
++	{
++		hang();
++	}
++	fLib_SetSerialMode( DebugSerialPort, SERIAL_MDR_UART );
++	fLib_SerialInit( DebugSerialPort, reg, PARITY_NONE, 0, 8 );
++	fLib_SetSerialFifoCtrl(DebugSerialPort, 1, ENABLE, ENABLE);
++}
++
++/*
++ * Initialise the serial port with the given baudrate. The settings
++ * are always 8 data bits, no parity, 1 stop bit, no start bits.
++ *
++ */
++int serial_init(void)
++{
++	const char *baudrate;
++
++	gd-&gt;baudrate = CONFIG_BAUDRATE;
++	if ((baudrate = getenv(&quot;baudrate&quot;)) != 0)
++	{
++		//printf(&quot;serial_init&gt; baudrate: %s \n&quot;, baudrate);
++		gd-&gt;baudrate = simple_strtoul(baudrate, NULL, 10);
++	}
++	//serial_setbrg();
++
++	return 0;
++}
++
++
++/*
++ * Read a single byte from the serial port. Returns 1 on success, 0
++ * otherwise. When the function is succesfull, the character read is
++ * written into its argument c.
++ */
++int serial_getc(void)
++{
++	return fLib_GetSerialChar( DebugSerialPort );
++}
++
++
++/*
++ * Output a single byte to the serial port.
++ */
++void serial_putc(const char c)
++{
++
++	if(c == '\n')
++		serial_putc('\r');
++	fLib_PutSerialChar( DebugSerialPort, c );
++
++	/* If \n, also do \r */
++//	if(c == '\n')
++//	  	serial_putc('\r');
++}
++
++/*
++ * Test whether a character is in the RX buffer
++ */
++int serial_tstc(void)
++{
++	return ( cpe_inl( DebugSerialPort + SERIAL_LSR ) &amp; SERIAL_LSR_DR ) == SERIAL_LSR_DR;
++}
++
++void serial_puts (const char *s)
++{
++	while (*s) {
++		serial_putc (*s++);
++	}
++}
+-- 
+1.7.1
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="072565.html">[U-Boot] [PATCH 04/10] nds32: add nds32 board with ag101 support
+</A></li>
+	<LI>Next message: <A HREF="072615.html">[U-Boot] [PATCH 05/10] nds32: add nds32 board with common	support
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#72556">[ date ]</a>
+              <a href="thread.html#72556">[ thread ]</a>
+              <a href="subject.html#72556">[ subject ]</a>
+              <a href="author.html#72556">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="http://lists.denx.de/mailman/listinfo/u-boot">More information about the U-Boot
+mailing list</a><br>
+</body></html>

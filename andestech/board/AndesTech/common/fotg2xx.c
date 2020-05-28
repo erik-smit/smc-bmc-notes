@@ -2,8 +2,8 @@
  * FOTG2xx (Host Controller Driver) for USB on the Andes.
  *
  * Copyright (C) 2009 Andes Technology Corporation
- * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
- * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
+ * Shawn Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>>
+ * Macpaul Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -29,10 +29,10 @@
  *	 (BBB) ONLY. There is NO support for Interrupt or Isochronous pipes!
  */
 
-#include &lt;common.h&gt;
-#include &lt;usb.h&gt;
+#include <common.h>
+#include <usb.h>
 
-#if defined(CONFIG_CMD_USB) &amp;&amp; !defined(CONFIG_PCI_OHCI) &amp;&amp; !defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_CMD_USB) && !defined(CONFIG_PCI_OHCI) && !defined(CONFIG_USB_OHCI_NEW)
 
 int usb_lowlevel_init(void)
 {

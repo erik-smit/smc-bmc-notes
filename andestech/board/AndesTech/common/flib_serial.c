@@ -1,11 +1,11 @@
 /*
  * (C) Copyright 2002
- * Sysgo Real-Time Solutions, GmbH &lt;www.elinos.com&gt;
- * Marius Groeger &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>&gt;
+ * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
+ * Marius Groeger <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>>
  *
  * Copyright (C) 2006 Andes Technology Corporation
- * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
- * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
+ * Shawn Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>>
+ * Macpaul Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -34,10 +34,10 @@
 * Author: Fred Chien							*
 ************************************************************************/
 
-#include &lt;nds32_common.h&gt;
-#include &quot;../include/symbol.h&quot;
-#include &quot;../include/serial.h&quot;
-#include &quot;../include/porting.h&quot;
+#include <nds32_common.h>
+#include "../include/symbol.h"
+#include "../include/serial.h"
+#include "../include/porting.h"
 
 #define outw 				cpe_outl
 #define inw				cpe_inl
@@ -62,7 +62,7 @@ void fLib_SetSerialMode(UINT32 port, UINT32 mode)
 	UINT32 mdr;
 
 	mdr = inw(port + SERIAL_MDR);
-	mdr &amp;= ~SERIAL_MDR_MODE_SEL;
+	mdr &= ~SERIAL_MDR_MODE_SEL;
 	outw(port + SERIAL_MDR, mdr | mode);
 }
 
@@ -72,7 +72,7 @@ void fLib_EnableIRMode(UINT32 port, UINT32 TxEnable, UINT32 RxEnable)
 	UINT32 acr;
 
 	acr = inw(port + SERIAL_ACR);
-	acr &amp;= ~(SERIAL_ACR_TXENABLE | SERIAL_ACR_RXENABLE);
+	acr &= ~(SERIAL_ACR_TXENABLE | SERIAL_ACR_RXENABLE);
 	if(TxEnable)
 		acr |= SERIAL_ACR_TXENABLE;
 	if(RxEnable)
@@ -86,15 +86,15 @@ void fLib_SerialInit(UINT32 port, UINT32 baudrate, UINT32 parity,UINT32 num,UINT
 {
 	UINT32 lcr;
 
-	lcr = inw(port + SERIAL_LCR) &amp; ~SERIAL_LCR_DLAB;
+	lcr = inw(port + SERIAL_LCR) & ~SERIAL_LCR_DLAB;
 	/* Set DLAB=1 */
 	outw(port + SERIAL_LCR,SERIAL_LCR_DLAB);
 	/* Set baud rate */
-	outw(port + SERIAL_DLM, ((baudrate &amp; 0xf00) &gt;&gt; 8));
-	outw(port + SERIAL_DLL, (baudrate &amp; 0xff));
+	outw(port + SERIAL_DLM, ((baudrate & 0xf00) >> 8));
+	outw(port + SERIAL_DLL, (baudrate & 0xff));
 
 	//clear orignal parity setting
-	lcr &amp;= 0xc0;
+	lcr &= 0xc0;
 
 	switch (parity)
 	{
@@ -137,7 +137,7 @@ void fLib_SetSerialLoopback(UINT32 port, UINT32 onoff)
 	if(onoff==ON)
 		temp|=SERIAL_MCR_LPBK;
 	else
-		temp&amp;=~(SERIAL_MCR_LPBK);
+		temp&=~(SERIAL_MCR_LPBK);
 
 	outw(port+SERIAL_MCR,temp);
 }
@@ -194,7 +194,7 @@ char fLib_GetSerialChar(UINT32 port)
 	{
 		status=inw(port+SERIAL_LSR);
 	}
-	while (!((status &amp; SERIAL_LSR_DR)==SERIAL_LSR_DR));	// wait until Rx ready
+	while (!((status & SERIAL_LSR_DR)==SERIAL_LSR_DR));	// wait until Rx ready
 	Ch = inw(port + SERIAL_RBR);
 	return (Ch);
 }
@@ -206,7 +206,7 @@ void fLib_PutSerialChar(UINT32 port, char Ch)
 	do
 	{
 		status=inw(port+SERIAL_LSR);
-	} while (!((status &amp; SERIAL_LSR_THRE)==SERIAL_LSR_THRE));	// wait until Tx ready
+	} while (!((status & SERIAL_LSR_THRE)==SERIAL_LSR_THRE));	// wait until Tx ready
 	outw(port + SERIAL_THR,Ch);
 }
 
@@ -220,14 +220,14 @@ void fLib_PutSerialStr(UINT32 port, char *Str)
 
 void fLib_Modem_waitcall(UINT32 port)
 {
-	fLib_PutSerialStr(port, &quot;ATS0=2\r&quot;);
+	fLib_PutSerialStr(port, "ATS0=2\r");
 }
 
 void fLib_Modem_call(UINT32 port, char *tel)
 {
-	fLib_PutSerialStr(port, &quot;ATDT&quot;);
+	fLib_PutSerialStr(port, "ATDT");
 	fLib_PutSerialStr(port,  tel);
-	fLib_PutSerialStr(port, &quot;\r&quot;);
+	fLib_PutSerialStr(port, "\r");
 }
 
 int fLib_Modem_getchar(UINT32 port,int TIMEOUT)
@@ -242,15 +242,15 @@ int fLib_Modem_getchar(UINT32 port,int TIMEOUT)
 
 	do
 	{
-		if(n&gt;1000)
+		if(n>1000)
 		{
 			middle_time = fLib_CurrentT1Tick();
-			if (middle_time &gt; dead_time)
+			if (middle_time > dead_time)
 				return 0x100;
 		}
 		status = inw(port + SERIAL_LSR);
 		n++;
-	}while (!((status &amp; SERIAL_LSR_DR)==SERIAL_LSR_DR));
+	}while (!((status & SERIAL_LSR_DR)==SERIAL_LSR_DR));
 
 	ch = inw(port + SERIAL_RBR);
 	return (ch);
@@ -267,15 +267,15 @@ BOOL fLib_Modem_putchar(UINT32 port, INT8 Ch)
 
 	do
 	{
-		if(n&gt;1000)
+		if(n>1000)
 		{
 			middle_time = fLib_CurrentT1Tick();
-			if (middle_time &gt; dead_time)
+			if (middle_time > dead_time)
 				return FALSE;
 		}
 		status = inw(port + SERIAL_LSR);
 		n++;
-	} while (!((status &amp; SERIAL_LSR_THRE)==SERIAL_LSR_THRE));
+	} while (!((status & SERIAL_LSR_THRE)==SERIAL_LSR_THRE));
 
 	outw(port + SERIAL_THR, Ch);
 
@@ -296,7 +296,7 @@ void fLib_DisableSerialInt(UINT32 port, UINT32 mode)
 UINT32 data;
 
 	data = inw(port + SERIAL_IER);
-	mode = data &amp; (~mode);
+	mode = data & (~mode);
 	outw(port + SERIAL_IER, mode);
 }
 
@@ -321,7 +321,7 @@ UINT32 temp;
 	if(onoff == ON)
 		temp |= SERIAL_MCR_LPBK;
 	else
-		temp &amp;= ~(SERIAL_MCR_LPBK);
+		temp &= ~(SERIAL_MCR_LPBK);
 
 	outw(port+SERIAL_MCR,temp);
 }
@@ -339,7 +339,7 @@ void fLib_SerialStopToSend(UINT32 port)
 UINT32 data;
 
 	data = inw(port + SERIAL_MCR);
-	data &amp;= ~(SERIAL_MCR_RTS);
+	data &= ~(SERIAL_MCR_RTS);
 	outw(port + SERIAL_MCR, data);
 }
 
@@ -356,7 +356,7 @@ void fLib_SerialDataTerminalNotReady(UINT32 port)
 UINT32 data;
 
 	data = inw(port + SERIAL_MCR);
-	data &amp;= ~(SERIAL_MCR_DTR);
+	data &= ~(SERIAL_MCR_DTR);
 	outw(port + SERIAL_MCR, data);
 }
 

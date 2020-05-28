@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009 Andes Technology Corporation
- * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
- * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
+ * Shawn Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>>
+ * Macpaul Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -24,13 +24,13 @@
 // --------------------------------------------------------------------
 
 
-#include &lt;common.h&gt;
-#include &lt;asm/andesboot.h&gt;
-#include &lt;malloc.h&gt;
-#include &lt;command.h&gt;
-#include &quot;../include/porting.h&quot;
-#include &quot;../include/ftmac100.h&quot;
-#include &lt;net.h&gt;
+#include <common.h>
+#include <asm/andesboot.h>
+#include <malloc.h>
+#include <command.h>
+#include "../include/porting.h"
+#include "../include/ftmac100.h"
+#include <net.h>
 
 
 #ifdef CONFIG_DRIVER_FTMAC100
@@ -41,7 +41,7 @@
 static unsigned char ftmac100_mac_addr[] = {0x00, 0x41, 0x71, 0x99, 0x00, 0x00};
 
 static const char version[] =
-	&quot;Faraday FTMAC100 Driver, (Linux Kernel 2.4) 10/18/02 - by Faraday\n&quot;;
+	"Faraday FTMAC100 Driver, (Linux Kernel 2.4) 10/18/02 - by Faraday\n";
 
 #define inl(addr) 			(*((volatile u32 *)(addr)))
 #define inw(addr)			(*((volatile u16 *)(addr)))
@@ -60,7 +60,7 @@ int tx_rx_cnt = 0;
  *
  * 0 for normal operation
  * 1 for slightly more details
- * &gt;2 for various levels of increasingly useless information
+ * >2 for various levels of increasingly useless information
  *	2 for interrupt tracking, status flags
  *	3 for packet info
  *	4 for complete packet dumps
@@ -70,13 +70,13 @@ int tx_rx_cnt = 0;
 
 //#define FTMAC100_DEBUG 5 // Must be defined in makefile
 
-#if (FTMAC100_DEBUG &gt; 2 )
+#if (FTMAC100_DEBUG > 2 )
 #define PRINTK3(args...) DO_PRINT(args)
 #else
 #define PRINTK3(args...)
 #endif
 
-#if FTMAC100_DEBUG &gt; 1
+#if FTMAC100_DEBUG > 1
 #define PRINTK2(args...) DO_PRINT(args)
 #else
 #define PRINTK2(args...)
@@ -98,7 +98,7 @@ int tx_rx_cnt = 0;
  * what you are doing.
  *
  */
-#define CARDNAME &quot;FTMAC100&quot;
+#define CARDNAME "FTMAC100"
 
 #ifdef FTMAC100_TIMER
 	static struct timer_list ftmac100_timer;
@@ -173,7 +173,7 @@ inline static int ftmac100_rcv( struct net_device *dev );
 /*
  * A rather simple routine to print out a packet for debugging purposes.
  */
-#if FTMAC100_DEBUG &gt; 2
+#if FTMAC100_DEBUG > 2
 static void print_packet( byte *, int );
 #endif
 
@@ -200,12 +200,12 @@ void put_mac(int base, unsigned char *mac_addr)
 {
 	int val;
 
-	val = ((u32)mac_addr[0])&lt;&lt;8 | (u32)mac_addr[1];
+	val = ((u32)mac_addr[0])<<8 | (u32)mac_addr[1];
 	outl(val, base + MAC_MADR_REG);
-	val = ((((u32)mac_addr[2])&lt;&lt;24)&amp;0xff000000) |
-		((((u32)mac_addr[3])&lt;&lt;16)&amp;0xff0000) |
-		((((u32)mac_addr[4])&lt;&lt;8)&amp;0xff00)  |
-		((((u32)mac_addr[5])&lt;&lt;0)&amp;0xff);
+	val = ((((u32)mac_addr[2])<<24)&0xff000000) |
+		((((u32)mac_addr[3])<<16)&0xff0000) |
+		((((u32)mac_addr[4])<<8)&0xff00)  |
+		((((u32)mac_addr[5])<<0)&0xff);
 	outl(val, base + MAC_LADR_REG);
 }
 
@@ -213,13 +213,13 @@ void get_mac(int base, unsigned char *mac_addr)
 {
 	int val;
 	val = inl(base + MAC_MADR_REG);
-	mac_addr[0] = (val&gt;&gt;8)&amp;0xff;
-	mac_addr[1] = val&amp;0xff;
+	mac_addr[0] = (val>>8)&0xff;
+	mac_addr[1] = val&0xff;
 	val = inl(base + MAC_LADR_REG);
-	mac_addr[2] = (val&gt;&gt;24)&amp;0xff;
-	mac_addr[3] = (val&gt;&gt;16)&amp;0xff;
-	mac_addr[4] = (val&gt;&gt;8)&amp;0xff;
-	mac_addr[5] = val&amp;0xff;
+	mac_addr[2] = (val>>24)&0xff;
+	mac_addr[3] = (val>>16)&0xff;
+	mac_addr[4] = (val>>8)&0xff;
+	mac_addr[5] = val&0xff;
 }
 
 /*
@@ -229,12 +229,12 @@ void print_mac(unsigned char *mac_addr)
 {
 	int i;
 
-	DO_PRINT(&quot;ADDR: &quot;);
-	for (i = 0; i &lt; 5; i++)
+	DO_PRINT("ADDR: ");
+	for (i = 0; i < 5; i++)
 	{
-		DO_PRINT(&quot;%2.2x:&quot;, mac_addr[i] );
+		DO_PRINT("%2.2x:", mac_addr[i] );
 	}
-	DO_PRINT(&quot;%2.2x \n&quot;, mac_addr[5] );
+	DO_PRINT("%2.2x \n", mac_addr[5] );
 }
 
 
@@ -244,23 +244,23 @@ void print_mac(unsigned char *mac_addr)
 static void ftmac100_timer_func(unsigned long dummy)
 {
 	struct net_device *dev = (struct net_device *)ftmac100_timer.data;
-	struct ftmac100_local *lp = (struct ftmac100_local *)dev-&gt;priv;
+	struct ftmac100_local *lp = (struct ftmac100_local *)dev->priv;
 	int i;
 	int rxdma_own = 0;
 
-	DO_PRINT(&quot;lp-&gt;rx_idx = %d\n&quot;, lp-&gt;rx_idx);
-	for (i=0; i&lt;RXDES_NUM; ++i)
+	DO_PRINT("lp->rx_idx = %d\n", lp->rx_idx);
+	for (i=0; i<RXDES_NUM; ++i)
 	{
-		rxdma_own += lp-&gt;rx_descs[i].RXDMA_OWN;
-		DO_PRINT(&quot;%d &quot;, lp-&gt;rx_descs[i].RXDMA_OWN);
+		rxdma_own += lp->rx_descs[i].RXDMA_OWN;
+		DO_PRINT("%d ", lp->rx_descs[i].RXDMA_OWN);
 		if (i%10==9)
 		{
-			DO_PRINT(&quot;\n&quot;);
+			DO_PRINT("\n");
 		}
 	}
-	DO_PRINT(&quot;\n&quot;);
+	DO_PRINT("\n");
 
-	mod_timer(&amp;ftmac100_timer, jiffies + FTMAC100_STROBE_TIME);
+	mod_timer(&ftmac100_timer, jiffies + FTMAC100_STROBE_TIME);
 }
 
 #endif
@@ -283,10 +283,10 @@ static void ftmac100_timer_func(unsigned long dummy)
  */
 static void ftmac100_reset( struct net_device* dev )
 {
-	//struct ftmac100_local *lp 	= (struct ftmac100_local *)dev-&gt;priv;
-	unsigned int	ioaddr = dev-&gt;base_addr;
+	//struct ftmac100_local *lp 	= (struct ftmac100_local *)dev->priv;
+	unsigned int	ioaddr = dev->base_addr;
 
-	PRINTK2(&quot;%s:ftmac100_reset\n&quot;, dev-&gt;name);
+	PRINTK2("%s:ftmac100_reset\n", dev->name);
 
 	outl( SW_RST_bit, ioaddr + MACCR_REG );
 
@@ -294,15 +294,15 @@ static void ftmac100_reset( struct net_device* dev )
 	/* Setup for fast accesses if requested */
 	/* If the card/system can't handle it then there will */
 	/* be no recovery except for a hard reset or power cycle */
-	if (dev-&gt;dma) {
+	if (dev->dma) {
 		outw( inw( ioaddr + CONFIG_REG ) | CONFIG_NO_WAIT,	ioaddr + CONFIG_REG );
 	}
 #endif /* end_of_not */
 
 	/* this should pause enough for the chip to be happy */
-	for (; (inl( ioaddr + MACCR_REG ) &amp; SW_RST_bit) != 0; ) {
+	for (; (inl( ioaddr + MACCR_REG ) & SW_RST_bit) != 0; ) {
 		mdelay(10);
-		PRINTK3(&quot;RESET: reset not complete yet\n&quot; );
+		PRINTK3("RESET: reset not complete yet\n" );
 	}
 
 	/* Disable all interrupts */
@@ -320,32 +320,32 @@ static void ftmac100_reset( struct net_device* dev )
  */
 static void ftmac100_enable( struct net_device *dev )
 {
-	unsigned int ioaddr 	= dev-&gt;base_addr;
+	unsigned int ioaddr 	= dev->base_addr;
 	int i;
-	struct ftmac100_local *lp 	= (struct ftmac100_local *)dev-&gt;priv;
+	struct ftmac100_local *lp 	= (struct ftmac100_local *)dev->priv;
 
-	PRINTK2(&quot;%s:ftmac100_enable\n&quot;, dev-&gt;name);
+	PRINTK2("%s:ftmac100_enable\n", dev->name);
 
-	for (i=0; i&lt;RXDES_NUM; ++i) {
-		lp-&gt;rx_descs[i].RXDMA_OWN = OWNBY_FTMAC100;			// owned by FTMAC100
+	for (i=0; i<RXDES_NUM; ++i) {
+		lp->rx_descs[i].RXDMA_OWN = OWNBY_FTMAC100;			// owned by FTMAC100
 	}
-	lp-&gt;rx_idx = 0;
+	lp->rx_idx = 0;
 
-	for (i=0; i&lt;TXDES_NUM; ++i) {
-		lp-&gt;tx_descs[i].TXDMA_OWN = OWNBY_SOFTWARE;			// owned by software
+	for (i=0; i<TXDES_NUM; ++i) {
+		lp->tx_descs[i].TXDMA_OWN = OWNBY_SOFTWARE;			// owned by software
 	}
-	lp-&gt;tx_idx = 0;
+	lp->tx_idx = 0;
 
 
 	/* set the MAC address */
-	put_mac(ioaddr, dev-&gt;dev_addr);
+	put_mac(ioaddr, dev->dev_addr);
 
-	outl( lp-&gt;rx_descs_dma, ioaddr + RXR_BADR_REG);
-	outl( lp-&gt;tx_descs_dma, ioaddr + TXR_BADR_REG);
+	outl( lp->rx_descs_dma, ioaddr + RXR_BADR_REG);
+	outl( lp->tx_descs_dma, ioaddr + TXR_BADR_REG);
 	outl( 0x00001010, ioaddr + ITC_REG);					// this value is recommend by document
 	///outl( 0x0, ioaddr + ITC_REG);
-	///outl( (1UL&lt;&lt;TXPOLL_CNT)|(1UL&lt;&lt;RXPOLL_CNT), ioaddr + APTC_REG);
-	outl( (0UL&lt;&lt;TXPOLL_CNT)|(0x1&lt;&lt;RXPOLL_CNT), ioaddr + APTC_REG);
+	///outl( (1UL<<TXPOLL_CNT)|(1UL<<RXPOLL_CNT), ioaddr + APTC_REG);
+	outl( (0UL<<TXPOLL_CNT)|(0x1<<RXPOLL_CNT), ioaddr + APTC_REG);
 	outl( 0x1df, ioaddr + DBLAC_REG );					// this value is recommend by document
 	outl( inl(FCR_REG)|0x1, ioaddr + FCR_REG );				// enable flow control
 	outl( inl(BPR_REG)|0x1, ioaddr + BPR_REG );				// enable back pressure register
@@ -366,14 +366,14 @@ static void ftmac100_enable( struct net_device *dev )
 	);
 
 	/// enable trans/recv,...
-	outl(lp-&gt;maccr_val, ioaddr + MACCR_REG );
+	outl(lp->maccr_val, ioaddr + MACCR_REG );
 
 #ifdef FTMAC100_TIMER
-	/// waiting to do: &#168;&#226;&#173;&#211;&#165;H&#164;W&#170;&#186;&#186;&#244;&#184;&#244;&#165;d
-	init_timer(&amp;ftmac100_timer);
+	/// waiting to do: HWd
+	init_timer(&ftmac100_timer);
 	ftmac100_timer.function = ftmac100_timer_func;
 	ftmac100_timer.data = (unsigned long)dev;
-	mod_timer(&amp;ftmac100_timer, jiffies + FTMAC100_STROBE_TIME);
+	mod_timer(&ftmac100_timer, jiffies + FTMAC100_STROBE_TIME);
 #endif
 }
 
@@ -393,7 +393,7 @@ static void ftmac100_enable( struct net_device *dev )
  */
 static void ftmac100_shutdown( unsigned int ioaddr )
 {
-	/// &#179;]&#169;w interrupt mask register
+	/// ]w interrupt mask register
 	outl( 0, ioaddr + IMR_REG );
 
 	/// enable trans/recv,...
@@ -404,38 +404,38 @@ static void ftmac100_shutdown( unsigned int ioaddr )
 
 static int ftmac100_send_packet( void *packet, int length, struct net_device *dev )
 {
-	struct ftmac100_local *lp 	= (struct ftmac100_local *)dev-&gt;priv;
-	unsigned int ioaddr 	= dev-&gt;base_addr;
+	struct ftmac100_local *lp 	= (struct ftmac100_local *)dev->priv;
+	unsigned int ioaddr 	= dev->base_addr;
 	volatile TX_DESC *cur_desc;
 
 
-	PRINTK3(&quot;%s:ftmac100_wait_to_send_packet\n&quot;, dev-&gt;name);
-	cur_desc = &amp;lp-&gt;tx_descs[lp-&gt;tx_idx];
+	PRINTK3("%s:ftmac100_wait_to_send_packet\n", dev->name);
+	cur_desc = &lp->tx_descs[lp->tx_idx];
 
 	/* there is no empty transmit descriptor */
-	for (; cur_desc-&gt;TXDMA_OWN != OWNBY_SOFTWARE; )
+	for (; cur_desc->TXDMA_OWN != OWNBY_SOFTWARE; )
 	{
-		DO_PRINT(&quot;Transmitting busy\n&quot;);
+		DO_PRINT("Transmitting busy\n");
 		udelay(10);
 	}
-	length = ETH_ZLEN &lt; length ? length : ETH_ZLEN;
-	length = length &gt; TX_BUF_SIZE ? TX_BUF_SIZE : length;
+	length = ETH_ZLEN < length ? length : ETH_ZLEN;
+	length = length > TX_BUF_SIZE ? TX_BUF_SIZE : length;
 
-#if FTMAC100_DEBUG &gt; 2
-///	DO_PRINT(&quot;Transmitting Packet\n&quot;);
+#if FTMAC100_DEBUG > 2
+///	DO_PRINT("Transmitting Packet\n");
 ///	print_packet( packet, length );
 #endif
 	/* waiting to do: slice data into many segments*/
-	memcpy((char *)cur_desc-&gt;VIR_TXBUF_BADR, packet, length);
+	memcpy((char *)cur_desc->VIR_TXBUF_BADR, packet, length);
 
-	cur_desc-&gt;TXBUF_Size = length;
-	cur_desc-&gt;LTS = 1;
-	cur_desc-&gt;FTS = 1;
-	cur_desc-&gt;TX2FIC = 0;
-	cur_desc-&gt;TXIC = 0;
-	cur_desc-&gt;TXDMA_OWN = OWNBY_FTMAC100;
+	cur_desc->TXBUF_Size = length;
+	cur_desc->LTS = 1;
+	cur_desc->FTS = 1;
+	cur_desc->TX2FIC = 0;
+	cur_desc->TXIC = 0;
+	cur_desc->TXDMA_OWN = OWNBY_FTMAC100;
 	outl( 0xffffffff, ioaddr + TXPD_REG);
-	lp-&gt;tx_idx = (lp-&gt;tx_idx + 1) % TXDES_NUM;
+	lp->tx_idx = (lp->tx_idx + 1) % TXDES_NUM;
 
 
 	return length;
@@ -451,7 +451,7 @@ static int ftmac100_send_packet( void *packet, int length, struct net_device *de
  */
 void ftmac100_destructor(struct net_device *dev)
 {
-	PRINTK3(&quot;%s:ftmac100_destructor\n&quot;, dev-&gt;name);
+	PRINTK3("%s:ftmac100_destructor\n", dev->name);
 }
 
 /*
@@ -462,9 +462,9 @@ void ftmac100_destructor(struct net_device *dev)
  */
 static int ftmac100_open(struct net_device *dev)
 {
-	unsigned int	ioaddr = dev-&gt;base_addr;
+	unsigned int	ioaddr = dev->base_addr;
 
-	PRINTK2(&quot;%s:ftmac100_open\n&quot;, dev-&gt;name);
+	PRINTK2("%s:ftmac100_open\n", dev->name);
 
 #ifdef MODULE
 	MOD_INC_USE_COUNT;
@@ -475,7 +475,7 @@ static int ftmac100_open(struct net_device *dev)
 	ftmac100_enable( dev );
 
 	/* set the MAC address */
-	put_mac(ioaddr, dev-&gt;dev_addr);
+	put_mac(ioaddr, dev->dev_addr);
 
 	return 0;
 }
@@ -488,7 +488,7 @@ insl32(r,b,l)
 	dword *__b2;
 
 	__b2 = (dword *) b;
-	for (__i = 0; __i &lt; l; __i++) {
+	for (__i = 0; __i < l; __i++) {
 		*(__b2 + __i) = *(dword *)(r+0x10000300);
 	}
 }
@@ -506,7 +506,7 @@ insl32(r,b,l)
  */
 static int ftmac100_rcv(struct net_device *dev)
 {
-	struct ftmac100_local *lp = (struct ftmac100_local *)dev-&gt;priv;
+	struct ftmac100_local *lp = (struct ftmac100_local *)dev->priv;
 	int 	packet_length;
 	volatile RX_DESC *cur_desc;
 	int 	cpy_length;
@@ -514,42 +514,42 @@ static int ftmac100_rcv(struct net_device *dev)
 	int		seg_length;
 	int 	rcv_cnt;
 
-	///PRINTK3(&quot;%s:ftmac100_rcv\n&quot;, dev-&gt;name);
-	for (rcv_cnt=0; rcv_cnt&lt;1; ++rcv_cnt) {
+	///PRINTK3("%s:ftmac100_rcv\n", dev->name);
+	for (rcv_cnt=0; rcv_cnt<1; ++rcv_cnt) {
 		packet_length = 0;
-		start_idx = lp-&gt;rx_idx;
+		start_idx = lp->rx_idx;
 
-		for (; (cur_desc = &amp;lp-&gt;rx_descs[lp-&gt;rx_idx])-&gt;RXDMA_OWN==0; ) {
-			lp-&gt;rx_idx = (lp-&gt;rx_idx+1)%RXDES_NUM;
-			if (cur_desc-&gt;FRS) {
-				if (cur_desc-&gt;RX_ERR || cur_desc-&gt;CRC_ERR || cur_desc-&gt;FTL || cur_desc-&gt;RUNT || cur_desc-&gt;RX_ODD_NB) {
-					cur_desc-&gt;RXDMA_OWN = 1;	// this frame has been processed, return this to hardware
+		for (; (cur_desc = &lp->rx_descs[lp->rx_idx])->RXDMA_OWN==0; ) {
+			lp->rx_idx = (lp->rx_idx+1)%RXDES_NUM;
+			if (cur_desc->FRS) {
+				if (cur_desc->RX_ERR || cur_desc->CRC_ERR || cur_desc->FTL || cur_desc->RUNT || cur_desc->RX_ODD_NB) {
+					cur_desc->RXDMA_OWN = 1;	// this frame has been processed, return this to hardware
 					return 0;
 				}
-				packet_length = cur_desc-&gt;ReceiveFrameLength;		// normal frame
+				packet_length = cur_desc->ReceiveFrameLength;		// normal frame
 			}
 
 			// packet's last frame
-			if ( cur_desc-&gt;LRS ) {
+			if ( cur_desc->LRS ) {
 				break;
 			}
 		}
 
-		if (packet_length&gt;0)			// received one packet
+		if (packet_length>0)			// received one packet
 		{
 			byte		* data;
 
 			data = NetRxPackets[0];
 			cpy_length = 0;
-			for (; start_idx!=lp-&gt;rx_idx; start_idx=(start_idx+1)%RXDES_NUM) {
+			for (; start_idx!=lp->rx_idx; start_idx=(start_idx+1)%RXDES_NUM) {
 				seg_length = min(packet_length - cpy_length, RX_BUF_SIZE);
-				memcpy(data+cpy_length, (char *)lp-&gt;rx_descs[start_idx].VIR_RXBUF_BADR, seg_length);
+				memcpy(data+cpy_length, (char *)lp->rx_descs[start_idx].VIR_RXBUF_BADR, seg_length);
 				cpy_length += seg_length;
-				lp-&gt;rx_descs[start_idx].RXDMA_OWN = 1;		// this frame has been processed, return this to hardware
+				lp->rx_descs[start_idx].RXDMA_OWN = 1;		// this frame has been processed, return this to hardware
 			}
 			NetReceive(NetRxPackets[0], packet_length);
-#if	FTMAC100_DEBUG &gt; 4
-			DO_PRINT(&quot;Receiving Packet\n&quot;);
+#if	FTMAC100_DEBUG > 4
+			DO_PRINT("Receiving Packet\n");
 			print_packet( data, packet_length );
 #endif
 			return packet_length;
@@ -571,12 +571,12 @@ static int ftmac100_rcv(struct net_device *dev)
 static int ftmac100_close(struct net_device *dev)
 {
 	//netif_stop_queue(dev);
-	//dev-&gt;start = 0;
+	//dev->start = 0;
 
-	PRINTK2(&quot;%s:ftmac100_close\n&quot;, dev-&gt;name);
+	PRINTK2("%s:ftmac100_close\n", dev->name);
 
 	/* clear everything */
-	ftmac100_shutdown( dev-&gt;base_addr );
+	ftmac100_shutdown( dev->base_addr );
 
 	/* Update the statistics here. */
 #ifdef MODULE
@@ -591,42 +591,42 @@ static int ftmac100_close(struct net_device *dev)
 
 
 
-#if FTMAC100_DEBUG &gt; 2
+#if FTMAC100_DEBUG > 2
 static void print_packet( byte * buf, int length )
 {
 #if 1
-#if FTMAC100_DEBUG &gt; 3
+#if FTMAC100_DEBUG > 3
 	int i;
 	int remainder;
 	int lines;
 #endif
 
-	DO_PRINT(&quot;Packet of length %d \n&quot;, length );
+	DO_PRINT("Packet of length %d \n", length );
 
-#if FTMAC100_DEBUG &gt; 3
+#if FTMAC100_DEBUG > 3
 	lines = length / 16;
 	remainder = length % 16;
 
-	for ( i = 0; i &lt; lines ; i ++ ) {
+	for ( i = 0; i < lines ; i ++ ) {
 		int cur;
 
-		for ( cur = 0; cur &lt; 8; cur ++ ) {
+		for ( cur = 0; cur < 8; cur ++ ) {
 			byte a, b;
 
 			a = *(buf ++ );
 			b = *(buf ++ );
-			DO_PRINT(&quot;%02x%02x &quot;, a, b );
+			DO_PRINT("%02x%02x ", a, b );
 		}
-		DO_PRINT(&quot;\n&quot;);
+		DO_PRINT("\n");
 	}
-	for ( i = 0; i &lt; remainder/2 ; i++ ) {
+	for ( i = 0; i < remainder/2 ; i++ ) {
 		byte a, b;
 
 		a = *(buf ++ );
 		b = *(buf ++ );
-		DO_PRINT(&quot;%02x%02x &quot;, a, b );
+		DO_PRINT("%02x%02x ", a, b );
 	}
-	DO_PRINT(&quot;\n&quot;);
+	DO_PRINT("\n");
 #endif
 #endif
 }
@@ -637,59 +637,59 @@ void ftmac100_ringbuf_alloc(struct ftmac100_local *lp)
 {
 	int i;
 
-	lp-&gt;rx_descs = kmalloc( sizeof(RX_DESC)*(RXDES_NUM+1), GFP_DMA|GFP_KERNEL );
-	if (lp-&gt;rx_descs == NULL) {
-		DO_PRINT(&quot;Receive Ring Buffer allocation error\n&quot;);
+	lp->rx_descs = kmalloc( sizeof(RX_DESC)*(RXDES_NUM+1), GFP_DMA|GFP_KERNEL );
+	if (lp->rx_descs == NULL) {
+		DO_PRINT("Receive Ring Buffer allocation error\n");
 		BUG();
 	}
-	lp-&gt;rx_descs =  (RX_DESC *)((int)(((char *)lp-&gt;rx_descs)+sizeof(RX_DESC)-1)&amp;0xfffffff0);
-	lp-&gt;rx_descs_dma = virt_to_phys(lp-&gt;rx_descs);
-	memset(lp-&gt;rx_descs, 0, sizeof(RX_DESC)*RXDES_NUM);
+	lp->rx_descs =  (RX_DESC *)((int)(((char *)lp->rx_descs)+sizeof(RX_DESC)-1)&0xfffffff0);
+	lp->rx_descs_dma = virt_to_phys(lp->rx_descs);
+	memset(lp->rx_descs, 0, sizeof(RX_DESC)*RXDES_NUM);
 
 
-	lp-&gt;rx_buf = kmalloc( RX_BUF_SIZE*RXDES_NUM, GFP_DMA|GFP_KERNEL );
-	if (lp-&gt;rx_buf == NULL || (( (u32)lp-&gt;rx_buf % 4)!=0)) {
-		DO_PRINT(&quot;Receive Ring Buffer allocation error, lp-&gt;rx_buf = %x\n&quot;, lp-&gt;rx_buf);
+	lp->rx_buf = kmalloc( RX_BUF_SIZE*RXDES_NUM, GFP_DMA|GFP_KERNEL );
+	if (lp->rx_buf == NULL || (( (u32)lp->rx_buf % 4)!=0)) {
+		DO_PRINT("Receive Ring Buffer allocation error, lp->rx_buf = %x\n", lp->rx_buf);
 		BUG();
 	}
-	lp-&gt;rx_buf_dma = virt_to_phys(lp-&gt;rx_buf);
+	lp->rx_buf_dma = virt_to_phys(lp->rx_buf);
 
 
-	for (i=0; i&lt;RXDES_NUM; ++i) {
-		lp-&gt;rx_descs[i].RXBUF_Size = RX_BUF_SIZE;
-		lp-&gt;rx_descs[i].EDOTR = 0;			// not last descriptor
-		lp-&gt;rx_descs[i].RXBUF_BADR = lp-&gt;rx_buf_dma+RX_BUF_SIZE*i;
-		lp-&gt;rx_descs[i].VIR_RXBUF_BADR = virt_to_phys( lp-&gt;rx_descs[i].RXBUF_BADR );
+	for (i=0; i<RXDES_NUM; ++i) {
+		lp->rx_descs[i].RXBUF_Size = RX_BUF_SIZE;
+		lp->rx_descs[i].EDOTR = 0;			// not last descriptor
+		lp->rx_descs[i].RXBUF_BADR = lp->rx_buf_dma+RX_BUF_SIZE*i;
+		lp->rx_descs[i].VIR_RXBUF_BADR = virt_to_phys( lp->rx_descs[i].RXBUF_BADR );
 	}
-	lp-&gt;rx_descs[RXDES_NUM-1].EDOTR = 1;			// is last descriptor
+	lp->rx_descs[RXDES_NUM-1].EDOTR = 1;			// is last descriptor
 
 
-	lp-&gt;tx_descs = kmalloc( sizeof(TX_DESC)*(TXDES_NUM+1), GFP_DMA|GFP_KERNEL );
-	if (lp-&gt;tx_descs == NULL) {
-		DO_PRINT(&quot;Transmit Ring Buffer allocation error\n&quot;);
+	lp->tx_descs = kmalloc( sizeof(TX_DESC)*(TXDES_NUM+1), GFP_DMA|GFP_KERNEL );
+	if (lp->tx_descs == NULL) {
+		DO_PRINT("Transmit Ring Buffer allocation error\n");
 		BUG();
 	}
-	lp-&gt;tx_descs =  (TX_DESC *)((int)(((char *)lp-&gt;tx_descs)+sizeof(TX_DESC)-1)&amp;0xfffffff0);
-	lp-&gt;tx_descs_dma = virt_to_phys(lp-&gt;tx_descs);
-	memset(lp-&gt;tx_descs, 0, sizeof(TX_DESC)*TXDES_NUM);
+	lp->tx_descs =  (TX_DESC *)((int)(((char *)lp->tx_descs)+sizeof(TX_DESC)-1)&0xfffffff0);
+	lp->tx_descs_dma = virt_to_phys(lp->tx_descs);
+	memset(lp->tx_descs, 0, sizeof(TX_DESC)*TXDES_NUM);
 
-	lp-&gt;tx_buf = kmalloc( TX_BUF_SIZE*TXDES_NUM, GFP_DMA|GFP_KERNEL );
-	if (lp-&gt;tx_buf == NULL || (( (u32)lp-&gt;tx_buf % 4)!=0)) {
-		DO_PRINT(&quot;Transmit Ring Buffer allocation error\n&quot;);
+	lp->tx_buf = kmalloc( TX_BUF_SIZE*TXDES_NUM, GFP_DMA|GFP_KERNEL );
+	if (lp->tx_buf == NULL || (( (u32)lp->tx_buf % 4)!=0)) {
+		DO_PRINT("Transmit Ring Buffer allocation error\n");
 		BUG();
 	}
-	lp-&gt;tx_buf_dma = virt_to_phys(lp-&gt;tx_buf);
+	lp->tx_buf_dma = virt_to_phys(lp->tx_buf);
 
-	for (i=0; i&lt;TXDES_NUM; ++i) {
-		lp-&gt;tx_descs[i].EDOTR = 0;					// not last descriptor
-		lp-&gt;tx_descs[i].TXBUF_BADR = lp-&gt;tx_buf_dma+TX_BUF_SIZE*i;
-		lp-&gt;tx_descs[i].VIR_TXBUF_BADR = virt_to_phys( lp-&gt;tx_descs[i].TXBUF_BADR );
+	for (i=0; i<TXDES_NUM; ++i) {
+		lp->tx_descs[i].EDOTR = 0;					// not last descriptor
+		lp->tx_descs[i].TXBUF_BADR = lp->tx_buf_dma+TX_BUF_SIZE*i;
+		lp->tx_descs[i].VIR_TXBUF_BADR = virt_to_phys( lp->tx_descs[i].TXBUF_BADR );
 	}
-	lp-&gt;tx_descs[TXDES_NUM-1].EDOTR = 1;					// is last descriptor
-	PRINTK(&quot;lp-&gt;rx_descs = %x, lp-&gt;rx_rx_descs_dma = %x\n&quot;, lp-&gt;rx_descs, lp-&gt;rx_descs_dma);
-	PRINTK(&quot;lp-&gt;rx_buf = %x, lp-&gt;rx_buf_dma = %x\n&quot;, lp-&gt;rx_buf, lp-&gt;rx_buf_dma);
-	PRINTK(&quot;lp-&gt;tx_descs = %x, lp-&gt;tx_rx_descs_dma = %x\n&quot;, lp-&gt;tx_descs, lp-&gt;tx_descs_dma);
-	PRINTK(&quot;lp-&gt;tx_buf = %x, lp-&gt;tx_buf_dma = %x\n&quot;, lp-&gt;tx_buf, lp-&gt;tx_buf_dma);
+	lp->tx_descs[TXDES_NUM-1].EDOTR = 1;					// is last descriptor
+	PRINTK("lp->rx_descs = %x, lp->rx_rx_descs_dma = %x\n", lp->rx_descs, lp->rx_descs_dma);
+	PRINTK("lp->rx_buf = %x, lp->rx_buf_dma = %x\n", lp->rx_buf, lp->rx_buf_dma);
+	PRINTK("lp->tx_descs = %x, lp->tx_rx_descs_dma = %x\n", lp->tx_descs, lp->tx_descs_dma);
+	PRINTK("lp->tx_buf = %x, lp->tx_buf_dma = %x\n", lp->tx_buf, lp->tx_buf_dma);
 }
 
 //added by ivan
@@ -716,28 +716,28 @@ int eth_init(bd_t *bd)
 		dev_eth0.priv = (void *)malloc(sizeof(struct ftmac100_local));
 		if (dev_eth0.priv == NULL)
 		{
-			DO_PRINT(&quot;out of memory\n&quot;);
+			DO_PRINT("out of memory\n");
 			return 0;
 		}
 
 
 		/* initialize ftmac100_local */
 		memset(dev_eth0.priv, 0, sizeof(struct ftmac100_local));
-		strcpy(dev_eth0.name, &quot;eth0&quot;);
+		strcpy(dev_eth0.name, "eth0");
 		lp = (struct ftmac100_local *)dev_eth0.priv;
-		lp-&gt;maccr_val = FULLDUP_bit | CRC_APD_bit | MDC_SEL_bit | RCV_EN_bit | XMT_EN_bit  | RDMA_EN_bit	| XDMA_EN_bit;
-		///lp-&gt;maccr_val = FULLDUP_bit | CRC_APD_bit | MDC_SEL_bit | RCV_EN_bit | RDMA_EN_bit ;		// receive only
+		lp->maccr_val = FULLDUP_bit | CRC_APD_bit | MDC_SEL_bit | RCV_EN_bit | XMT_EN_bit  | RDMA_EN_bit	| XDMA_EN_bit;
+		///lp->maccr_val = FULLDUP_bit | CRC_APD_bit | MDC_SEL_bit | RCV_EN_bit | RDMA_EN_bit ;		// receive only
 
 		ftmac100_ringbuf_alloc(lp);
 	}
-	if (memcmp(bd-&gt;bi_enetaddr, &quot;\0\0\0\0\0\0&quot;, 6) == 0)
-		get_mac(NDS32_COMMON_FTMAC100_BASE, bd-&gt;bi_enetaddr);
+	if (memcmp(bd->bi_enetaddr, "\0\0\0\0\0\0", 6) == 0)
+		get_mac(NDS32_COMMON_FTMAC100_BASE, bd->bi_enetaddr);
 	else
-		put_mac(NDS32_COMMON_FTMAC100_BASE, bd-&gt;bi_enetaddr);
-	for (i=0; i&lt;6; ++i)
-		dev_eth0.dev_addr[i] = bd-&gt;bi_enetaddr[i];
-	print_mac(bd-&gt;bi_enetaddr);
-	ftmac100_open(&amp;dev_eth0);
+		put_mac(NDS32_COMMON_FTMAC100_BASE, bd->bi_enetaddr);
+	for (i=0; i<6; ++i)
+		dev_eth0.dev_addr[i] = bd->bi_enetaddr[i];
+	print_mac(bd->bi_enetaddr);
+	ftmac100_open(&dev_eth0);
 
 	return 0;
 }
@@ -745,22 +745,22 @@ int eth_init(bd_t *bd)
 void eth_halt()
 {
 	if (initialized == 1) {
-		ftmac100_close(&amp;dev_eth0);
+		ftmac100_close(&dev_eth0);
 	}
 }
 
 int eth_rx()
 {
-	return ftmac100_rcv(&amp;dev_eth0);
+	return ftmac100_rcv(&dev_eth0);
 }
 
 int eth_send(volatile void *packet, int length)
 {
-	return ftmac100_send_packet(packet, length, &amp;dev_eth0);
+	return ftmac100_send_packet(packet, length, &dev_eth0);
 }
 
 void ftmac100_dummy()
 {
-	printf(&quot;enter ftmac100_dummy\n&quot;);
+	printf("enter ftmac100_dummy\n");
 }
 #endif

@@ -1,11 +1,11 @@
 /*
  * (C) Copyright 2002
- * Sysgo Real-Time Solutions, GmbH &lt;www.elinos.com&gt;
- * Marius Groeger &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>&gt;
+ * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
+ * Marius Groeger <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>>
  *
  * Copyright (C) 2006 Andes Technology Corporation
- * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
- * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
+ * Shawn Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>>
+ * Macpaul Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -26,11 +26,11 @@
  * MA 02111-1307 USA
  */
 
-#include &lt;asm/andesboot.h&gt;
-#include &quot;../include/porting.h&quot;
-#include &quot;../include/flib_flash.h&quot;
-//#include &lt;flash.h&gt;
-//#include &lt;andes.h&gt;
+#include <asm/andesboot.h>
+#include "../include/porting.h"
+#include "../include/flib_flash.h"
+//#include <flash.h>
+//#include <andes.h>
 
 ulong myflush(void);
 
@@ -104,20 +104,20 @@ flash_info_t	flash_info[CONFIG_SYS_MAX_FLASH_BANKS];
 
 // --------------------------------------------------------------------
 //	setting the config of ROM/flash/sram
-//	write_protect:	1 ==&gt; write protect, 0 ==&gt; should be readable/writable
-//	bank_base: 	==&gt; only the last 24 bits is affect
+//	write_protect:	1 ==> write protect, 0 ==> should be readable/writable
+//	bank_base: 	==> only the last 24 bits is affect
 // --------------------------------------------------------------------
 void sram_config(int bank_num, u32 bank_base, int write_protect, int bank_type, int bank_size, int bus_width) {
 	u32 config_reg_val;
 
-	config_reg_val = (1UL&lt;&lt;28) | (bank_base &amp; 0x0fffffff) | ((write_protect&amp;0x01)&lt;&lt;11) | bank_type | bank_size | bus_width;
+	config_reg_val = (1UL<<28) | (bank_base & 0x0fffffff) | ((write_protect&0x01)<<11) | bank_type | bank_size | bus_width;
 
 	cpe_outl( NDS32_COMMON_SRAMC_BASE + bank_num*8, config_reg_val);
 }
 
 
 void sram_disable(int bank_num) {
-	cpe_outl( NDS32_COMMON_SRAMC_BASE + bank_num*8, cpe_inl( NDS32_COMMON_SRAMC_BASE + bank_num*8) &amp; 0x0fffffff );
+	cpe_outl( NDS32_COMMON_SRAMC_BASE + bank_num*8, cpe_inl( NDS32_COMMON_SRAMC_BASE + bank_num*8) & 0x0fffffff );
 }
 
 void sram_set_timing(int bank_num, unsigned long timing) {
@@ -128,12 +128,12 @@ void mx_flash_init(void)
 {
 	int j;
 
-	flash_info[0].flash_id = (MX_MANUFACT &amp; FLASH_VENDMASK) | (MX_ID_29LV008B &amp; FLASH_TYPEMASK);
+	flash_info[0].flash_id = (MX_MANUFACT & FLASH_VENDMASK) | (MX_ID_29LV008B & FLASH_TYPEMASK);
 	flash_info[0].size = 0x400000;
 	flash_info[0].sector_count = MX_SECTOR_COUNT;
 	memset(flash_info[0].protect, 0, MX_SECTOR_COUNT);
 
-	for (j=0; j&lt;flash_info[0].sector_count; ++j)
+	for (j=0; j<flash_info[0].sector_count; ++j)
 	{
 		if (j==0) {
 			flash_info[0].start[j] = PHYS_FLASH_1;
@@ -152,12 +152,12 @@ void sst39vf080_flash_init(void)
 	int j;
 
 	flash_info[0].flash_id =
-		(SST_MANUFACT &amp; FLASH_VENDMASK) | (SST_ID_39VF080 &amp; FLASH_TYPEMASK);
+		(SST_MANUFACT & FLASH_VENDMASK) | (SST_ID_39VF080 & FLASH_TYPEMASK);
 	flash_info[0].size = 0x400000;
 	flash_info[0].sector_count = SST39VF080_SECTOR_COUNT;
 	memset(flash_info[0].protect, 0, SST39VF080_SECTOR_COUNT);
 
-	for (j=0; j&lt;flash_info[0].sector_count; ++j) {
+	for (j=0; j<flash_info[0].sector_count; ++j) {
 		flash_info[0].start[j] = PHYS_FLASH_1 + 16*K*j;
 	}
 }
@@ -167,12 +167,12 @@ void sst39vf016_flash_init(void)
 	int j;
 
 	flash_info[0].flash_id =
-		(SST_MANUFACT &amp; FLASH_VENDMASK) | (SST_ID_39VF016 &amp; FLASH_TYPEMASK);
+		(SST_MANUFACT & FLASH_VENDMASK) | (SST_ID_39VF016 & FLASH_TYPEMASK);
 	flash_info[0].size = 0x800000;
 	flash_info[0].sector_count = SST39VF016_SECTOR_COUNT;
 	memset(flash_info[0].protect, 0, SST39VF016_SECTOR_COUNT);
 
-	for (j=0; j&lt;flash_info[0].sector_count; ++j) {
+	for (j=0; j<flash_info[0].sector_count; ++j) {
 		flash_info[0].start[j] = PHYS_FLASH_1 + 16*K*j;
 	}
 }
@@ -183,14 +183,14 @@ void intel_mx_flash_init(void)
 	int j;
 
 	flash_info[0].flash_id =
-		(INTEL_MANUFACT &amp; FLASH_VENDMASK) | (INTEL_ID_E28F128 &amp; FLASH_TYPEMASK);
+		(INTEL_MANUFACT & FLASH_VENDMASK) | (INTEL_ID_E28F128 & FLASH_TYPEMASK);
 	flash_info[0].size = INTEL_E28F128_SIZE*2; /* 32 MB */
 	flash_info[0].sector_count = (INTEL_E28F128_SIZE*2)/0x40000;
 
-	//memset(flash_info[0].protect, 0, (INTEL_E28F128_SIZE*2)/0x40000); // &lt;- bug
+	//memset(flash_info[0].protect, 0, (INTEL_E28F128_SIZE*2)/0x40000); // <- bug
 	memset(flash_info[0].protect, 0, CONFIG_SYS_MAX_FLASH_SECT);
 
-	for (j=0; j&lt;flash_info[0].sector_count; ++j)
+	for (j=0; j<flash_info[0].sector_count; ++j)
 	{
 		flash_info[0].start[j] = PHYS_FLASH_1 + 256*K*j; /* sector size=256K */
 	}
@@ -213,25 +213,25 @@ ulong flash_init(void)
 	//sram_config(FLASH_BANK, CONFIG_FLASH_BASE, 0, 0, SRAM_BANK_SIZE_8M, SRAM_BUS_WIDTH_32);
 
 	sram_set_timing(FLASH_BANK, TIMING_PARAMETER);
-	for(i=1;i&lt;7;i++)  // modify by Charles Tsai, bank 0 can't be disabled
+	for(i=1;i<7;i++)  // modify by Charles Tsai, bank 0 can't be disabled
 		if(i!=FLASH_BANK)
 			sram_disable(i);
 
 //	fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
-	fLib_Flash_ReadID(MX_Type, PHYS_FLASH_1, FLASH_FOUR, &amp;DDI1, &amp;DDI2);
-	//printf(&quot;DDI1 = %x, DDI2 = %x\n&quot;, DDI1, DDI2);
-	if (DDI1 == 0xc2c2c2c2 &amp;&amp; DDI2 == 0x37373737)			// &#169;&#244;&#167;&#187; flash
+	fLib_Flash_ReadID(MX_Type, PHYS_FLASH_1, FLASH_FOUR, &DDI1, &DDI2);
+	//printf("DDI1 = %x, DDI2 = %x\n", DDI1, DDI2);
+	if (DDI1 == 0xc2c2c2c2 && DDI2 == 0x37373737)			//  flash
 	{
 		fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
 		mx_flash_init();
 	} else {
 		fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
-		fLib_Flash_ReadID(SST_Type, PHYS_FLASH_1, FLASH_FOUR, &amp;DDI1, &amp;DDI2);
+		fLib_Flash_ReadID(SST_Type, PHYS_FLASH_1, FLASH_FOUR, &DDI1, &DDI2);
 		fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
-		//printf(&quot;DDI1 = %x, DDI2 = %x\n&quot;, DDI1, DDI2);
-		if (DDI1 == 0xbfbfbfbf &amp;&amp; DDI2 == 0xd8d8d8d8) {
+		//printf("DDI1 = %x, DDI2 = %x\n", DDI1, DDI2);
+		if (DDI1 == 0xbfbfbfbf && DDI2 == 0xd8d8d8d8) {
 			sst39vf080_flash_init();
-		} else if(DDI1 == 0xbfbfbfbf &amp;&amp; DDI2 == 0xd9d9d9d9) {
+		} else if(DDI1 == 0xbfbfbfbf && DDI2 == 0xd9d9d9d9) {
 			sram_config(FLASH_BANK, CONFIG_FLASH_BASE, 0, 0, SRAM_BANK_SIZE_8M, SRAM_BUS_WIDTH_32);
 			sst39vf016_flash_init();
 		} else {
@@ -239,14 +239,14 @@ ulong flash_init(void)
 			sram_set_timing(FLASH_BANK, TIMING_PARAMETER);
 			sram_config(FLASH_BANK, CONFIG_FLASH_BASE, 0, 0, SRAM_BANK_SIZE_32M, SRAM_BUS_WIDTH_32);
 			fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
-			fLib_Flash_ReadID(Intel_Type, PHYS_FLASH_1, FLASH_FOUR, &amp;DDI1, &amp;DDI2);
+			fLib_Flash_ReadID(Intel_Type, PHYS_FLASH_1, FLASH_FOUR, &DDI1, &DDI2);
 			fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
-			printf(&quot; ID1:%x, ID2:%x \n&quot;, DDI1, DDI2);
-			if ( (DDI1 == 0x00890089) &amp;&amp; (DDI2 == 0x00180018)) {
-				printf(&quot;Find Intel flash\n&quot;);
+			printf(" ID1:%x, ID2:%x \n", DDI1, DDI2);
+			if ( (DDI1 == 0x00890089) && (DDI2 == 0x00180018)) {
+				printf("Find Intel flash\n");
 				intel_mx_flash_init();
 			} else
-				printf(&quot;can not found any flash\n&quot;);
+				printf("can not found any flash\n");
 			/* end add */
 		}
 	}
@@ -258,12 +258,12 @@ ulong flash_init(void)
 	flash_protect(FLAG_PROTECT_SET,
 			  CONFIG_FLASH_BASE,
 			  CONFIG_FLASH_BASE + _armboot_end - _armboot_start,
-			  &amp;flash_info[0]);
+			  &flash_info[0]);
 
 	flash_protect(FLAG_PROTECT_SET,
 			  CONFIG_ENV_ADDR,
 			  CONFIG_ENV_ADDR + CONFIG_ENV_SIZE - 1,
-			  &amp;flash_info[0]);
+			  &flash_info[0]);
 #endif /* end_of_not */
 
 	return flash_info[0].size;
@@ -276,53 +276,53 @@ void flash_print_info(flash_info_t *info)
 {
 	int i;
 
-	switch (info-&gt;flash_id &amp; FLASH_VENDMASK) {
-		case (MX_MANUFACT &amp; FLASH_VENDMASK):
-			printf(&quot;Macronix: &quot;);
+	switch (info->flash_id & FLASH_VENDMASK) {
+		case (MX_MANUFACT & FLASH_VENDMASK):
+			printf("Macronix: ");
 		break;
 
-		case (SST_MANUFACT &amp; FLASH_VENDMASK):
-			printf(&quot;SST: &quot;);
+		case (SST_MANUFACT & FLASH_VENDMASK):
+			printf("SST: ");
 		break;
-		case (INTEL_MANUFACT &amp; FLASH_VENDMASK):
-			printf(&quot;Intel: &quot;);
+		case (INTEL_MANUFACT & FLASH_VENDMASK):
+			printf("Intel: ");
 		break;
 		default:
-			printf(&quot;Unknown Vendor &quot;);
+			printf("Unknown Vendor ");
 		break;
 	}
 
-	switch (info-&gt;flash_id &amp; FLASH_TYPEMASK) {
-		case (MX_ID_29LV008B &amp; FLASH_TYPEMASK):
-			printf(&quot;4x 29LV008B(8Mbit)\n&quot;);
+	switch (info->flash_id & FLASH_TYPEMASK) {
+		case (MX_ID_29LV008B & FLASH_TYPEMASK):
+			printf("4x 29LV008B(8Mbit)\n");
 		break;
 
-		case (SST_ID_39VF080 &amp; FLASH_TYPEMASK):
-			printf(&quot;4x 39VF080(8Mbit)\n&quot;);
+		case (SST_ID_39VF080 & FLASH_TYPEMASK):
+			printf("4x 39VF080(8Mbit)\n");
 		break;
 
-		case (SST_ID_39VF016 &amp; FLASH_TYPEMASK):
-			printf(&quot;4x 39VF016(16Mbit)\n&quot;);
+		case (SST_ID_39VF016 & FLASH_TYPEMASK):
+			printf("4x 39VF016(16Mbit)\n");
 		break;
-		case (INTEL_ID_E28F128&amp;FLASH_TYPEMASK):
-			printf(&quot;2x E28F128(128Mbit)\n&quot;);
+		case (INTEL_ID_E28F128&FLASH_TYPEMASK):
+			printf("2x E28F128(128Mbit)\n");
 		break;
 		default:
-			printf(&quot;Unknown Chip Type: %x\n&quot;, info-&gt;flash_id &amp; FLASH_TYPEMASK);
+			printf("Unknown Chip Type: %x\n", info->flash_id & FLASH_TYPEMASK);
 		goto Done;
 		break;
 	}
 
-	printf(&quot;  Size: %ld MB in %d Sectors\n&quot;, info-&gt;size &gt;&gt; 20, info-&gt;sector_count);
+	printf("  Size: %ld MB in %d Sectors\n", info->size >> 20, info->sector_count);
 
-	printf(&quot;  Sector Start Addresses:&quot;);
-	for (i = 0; i &lt; info-&gt;sector_count; i++) {
+	printf("  Sector Start Addresses:");
+	for (i = 0; i < info->sector_count; i++) {
 		if ((i % 5) == 0) {
-			printf (&quot;\n   &quot;);
+			printf ("\n   ");
 		}
-		printf (&quot; %08lX%s&quot;, info-&gt;start[i], info-&gt;protect[i] ? &quot; (RO)&quot; : &quot;	 &quot;);
+		printf (" %08lX%s", info->start[i], info->protect[i] ? " (RO)" : "	 ");
 	}
-	printf (&quot;\n&quot;);
+	printf ("\n");
 
 Done:
 ; //This is because new version of GCC doesn't take label at the end of the compound statement.
@@ -343,56 +343,56 @@ int flash_error (ulong code)
 	/* sequence is described in Intel 290644-005 document */
 
 	/* check Timeout */
-	if (code &amp; BIT_TIMEOUT) {
-		printf (&quot;Timeout\n&quot;);
+	if (code & BIT_TIMEOUT) {
+		printf ("Timeout\n");
 		return ERR_TIMOUT;
 	}
 
 	/* check Busy, SR.7 */
-	if (~code &amp; BIT_BUSY) {
-		printf (&quot;Busy\n&quot;);
+	if (~code & BIT_BUSY) {
+		printf ("Busy\n");
 		return ERR_PROG_ERROR;
 	}
 
 	/* check Vpp low, SR.3 */
-	if (code &amp; BIT_VPP_RANGE_ERROR) {
-		printf (&quot;Vpp range error\n&quot;);
+	if (code & BIT_VPP_RANGE_ERROR) {
+		printf ("Vpp range error\n");
 		return ERR_PROG_ERROR;
 	}
 
 	/* check Device Protect Error, SR.1 */
-	if (code &amp; BIT_PROTECT_ERROR) {
-		printf (&quot;Device protect error\n&quot;);
+	if (code & BIT_PROTECT_ERROR) {
+		printf ("Device protect error\n");
 		return ERR_PROG_ERROR;
 	}
 
-	/* check Command Seq Error, SR.4 &amp; SR.5 */
-	if (code &amp; BIT_SEQUENCE_ERROR) {
-		printf (&quot;Command seqence error\n&quot;);
+	/* check Command Seq Error, SR.4 & SR.5 */
+	if (code & BIT_SEQUENCE_ERROR) {
+		printf ("Command seqence error\n");
 		return ERR_PROG_ERROR;
 	}
 
 	/* check Block Erase Error, SR.5 */
-	if (code &amp; BIT_ERASE_ERROR) {
-		printf (&quot;Block erase error\n&quot;);
+	if (code & BIT_ERASE_ERROR) {
+		printf ("Block erase error\n");
 		return ERR_PROG_ERROR;
 	}
 
 	/* check Program Error, SR.4 */
-	if (code &amp; BIT_PROGRAM_ERROR) {
-		printf (&quot;Program error\n&quot;);
+	if (code & BIT_PROGRAM_ERROR) {
+		printf ("Program error\n");
 		return ERR_PROG_ERROR;
 	}
 
 	/* check Block Erase Suspended, SR.6 */
-	if (code &amp; BIT_ERASE_SUSPEND) {
-		printf (&quot;Block erase suspended\n&quot;);
+	if (code & BIT_ERASE_SUSPEND) {
+		printf ("Block erase suspended\n");
 		return ERR_PROG_ERROR;
 	}
 
 	/* check Program Suspended, SR.2 */
-	if (code &amp; BIT_PROGRAM_SUSPEND) {
-		printf (&quot;Program suspended\n&quot;);
+	if (code & BIT_PROGRAM_SUSPEND) {
+		printf ("Program suspended\n");
 		return ERR_PROG_ERROR;
 	}
 
@@ -411,23 +411,23 @@ int flash_erase (flash_info_t *info, int s_first, int s_last)
 
 	/* first look for protection bits */
 
-	if (info-&gt;flash_id == FLASH_UNKNOWN) {
+	if (info->flash_id == FLASH_UNKNOWN) {
 		return ERR_UNKNOWN_FLASH_TYPE;
 	}
 
-	if ((s_first &lt; 0) || (s_first &gt; s_last)) {
+	if ((s_first < 0) || (s_first > s_last)) {
 		return ERR_INVAL;
 	}
 
-	if ((info-&gt;flash_id &amp; FLASH_VENDMASK) != (MX_MANUFACT &amp; FLASH_VENDMASK) &amp;&amp;
-		(info-&gt;flash_id &amp; FLASH_VENDMASK) != (SST_MANUFACT &amp; FLASH_VENDMASK) ) {
-		if((info-&gt;flash_id &amp; FLASH_VENDMASK) != (INTEL_MANUFACT &amp; FLASH_VENDMASK))
+	if ((info->flash_id & FLASH_VENDMASK) != (MX_MANUFACT & FLASH_VENDMASK) &&
+		(info->flash_id & FLASH_VENDMASK) != (SST_MANUFACT & FLASH_VENDMASK) ) {
+		if((info->flash_id & FLASH_VENDMASK) != (INTEL_MANUFACT & FLASH_VENDMASK))
 		return ERR_UNKNOWN_FLASH_VENDOR;
 	}
 
 	prot = 0;
-	for (sect=s_first; sect&lt;=s_last; ++sect) {
-		if (info-&gt;protect[sect]) {
+	for (sect=s_first; sect<=s_last; ++sect) {
+		if (info->protect[sect]) {
 			prot++;
 		}
 	}
@@ -449,50 +449,50 @@ int flash_erase (flash_info_t *info, int s_first, int s_last)
 
 	iflag = disable_interrupts();
 	/* add  by Charles Tsai */
-	//fLib_Flash_ChipErase(Intel_Type, info-&gt;start[0], FLASH_FOUR);
+	//fLib_Flash_ChipErase(Intel_Type, info->start[0], FLASH_FOUR);
 	/* Start erase on unprotected sectors */
-	for (sect = s_first; sect&lt;=s_last &amp;&amp; !ctrlc(); sect++)
+	for (sect = s_first; sect<=s_last && !ctrlc(); sect++)
 	{
 		int start_addr;
 		int end_addr;
-		printf(&quot;Erasing sector %2d ... &quot;, sect);
+		printf("Erasing sector %2d ... ", sect);
 
-		if((info-&gt;flash_id &amp; FLASH_VENDMASK) == (MX_MANUFACT&amp;FLASH_VENDMASK) ) {
-			fLib_Flash_SectorErase(MX_Type, info-&gt;start[0],
-			FLASH_FOUR, (info-&gt;start[sect]-info-&gt;start[0])/4);
-		} else if((info-&gt;flash_id &amp; FLASH_VENDMASK) == (SST_MANUFACT&amp;FLASH_VENDMASK) ) {
-			fLib_Flash_SectorErase(SST_Type, info-&gt;start[0], FLASH_FOUR, (info-&gt;start[sect]-info-&gt;start[0])/4);
+		if((info->flash_id & FLASH_VENDMASK) == (MX_MANUFACT&FLASH_VENDMASK) ) {
+			fLib_Flash_SectorErase(MX_Type, info->start[0],
+			FLASH_FOUR, (info->start[sect]-info->start[0])/4);
+		} else if((info->flash_id & FLASH_VENDMASK) == (SST_MANUFACT&FLASH_VENDMASK) ) {
+			fLib_Flash_SectorErase(SST_Type, info->start[0], FLASH_FOUR, (info->start[sect]-info->start[0])/4);
 		}
-		else if((info-&gt;flash_id &amp; FLASH_VENDMASK) == (INTEL_MANUFACT&amp;FLASH_VENDMASK) ) {
+		else if((info->flash_id & FLASH_VENDMASK) == (INTEL_MANUFACT&FLASH_VENDMASK) ) {
 			/* modify by Charles Tsai for test */
-			fLib_Flash_ChipErase(Intel_Type, info-&gt;start[sect], FLASH_FOUR);
+			fLib_Flash_ChipErase(Intel_Type, info->start[sect], FLASH_FOUR);
 			fLib_Flash_Reset(PHYS_FLASH_1, FLASH_FOUR);
 		} else {
-			printf(&quot;unknown flash type\n&quot;);
+			printf("unknown flash type\n");
 		return ERR_UNKNOWN_FLASH_TYPE;
 	}
 
 		reset_timer_masked();
-		start_addr = info-&gt;start[sect];
-		if (sect &lt; flash_info[0].sector_count-1) {
-			end_addr = info-&gt;start[sect+1];
+		start_addr = info->start[sect];
+		if (sect < flash_info[0].sector_count-1) {
+			end_addr = info->start[sect+1];
 		} else {
-			end_addr = info-&gt;start[0] + info-&gt;size;
+			end_addr = info->start[0] + info->size;
 		}
-		for (; start_addr &lt; end_addr; start_addr+=4) {
+		for (; start_addr < end_addr; start_addr+=4) {
 			for (; *(unsigned long *)start_addr != 0xffffffff; ) {
-				if (get_timer_masked() &gt; CONFIG_FLASH_ERASE_TOUT) {
-					printf(&quot;fail:0x%x\n&quot;,start_addr);
+				if (get_timer_masked() > CONFIG_FLASH_ERASE_TOUT) {
+					printf("fail:0x%x\n",start_addr);
 					return ERR_PROG_ERROR;
 				}
 			}
 		}
 
-		printf(&quot;ok.\n&quot;);
+		printf("ok.\n");
 	}
 
 	if (ctrlc())
-		printf(&quot;User Interrupt!\n&quot;);
+		printf("User Interrupt!\n");
 
 outahere:
 	/* allow flash to settle - wait 10 ms */
@@ -512,31 +512,31 @@ outahere:
  */
 // --------------------------------------------------------------------
 //	return
-//		ERR_OK ==&gt; without error
-//		less than 0 ==&gt; error code
+//		ERR_OK ==> without error
+//		less than 0 ==> error code
 // --------------------------------------------------------------------
 volatile static int write_word (flash_info_t *info, ulong dest, ulong data)
 {
 	volatile ulong new_data;
 	int flash_type;
 
-	if ( (info-&gt;flash_id &amp; FLASH_VENDMASK) == (MX_MANUFACT &amp; FLASH_VENDMASK) ) {
+	if ( (info->flash_id & FLASH_VENDMASK) == (MX_MANUFACT & FLASH_VENDMASK) ) {
 		flash_type = MX_Type;
-	} else if( (info-&gt;flash_id &amp; FLASH_VENDMASK) == (SST_MANUFACT &amp; FLASH_VENDMASK) ) {
+	} else if( (info->flash_id & FLASH_VENDMASK) == (SST_MANUFACT & FLASH_VENDMASK) ) {
 		flash_type = SST_Type;
-	} else if( (info-&gt;flash_id &amp; FLASH_VENDMASK) == (INTEL_MANUFACT &amp; FLASH_VENDMASK) ) {
+	} else if( (info->flash_id & FLASH_VENDMASK) == (INTEL_MANUFACT & FLASH_VENDMASK) ) {
 		/* modify by charles Tsai only for test */
 		flash_type = Intel_Type;
 	} else {
-		printf(&quot;unknown flash type\n&quot;);
+		printf("unknown flash type\n");
 		return ERR_UNKNOWN_FLASH_TYPE;
 	}
 
-	fLib_Flash_ProgramWord(flash_type, info-&gt;start[0], dest, data);
-	fLib_Flash_ReadWord(dest, &amp;new_data);
+	fLib_Flash_ProgramWord(flash_type, info->start[0], dest, data);
+	fLib_Flash_ReadWord(dest, &new_data);
 
 	if (new_data != data) {
-		printf(&quot;addr: %x write error: should %x ==&gt; result %x\n&quot;, dest, data, new_data);
+		printf("addr: %x write error: should %x ==> result %x\n", dest, data, new_data);
 		return ERR_PROG_ERROR;
 	}
 
@@ -547,11 +547,11 @@ volatile static int write_word (flash_info_t *info, ulong dest, ulong data)
  * Copy memory to flash.
  */
 // --------------------------------------------------------------------
-//	src ==&gt; source address
-//	addr ==&gt; destination address
+//	src ==> source address
+//	addr ==> destination address
 //	return
-//	ERR_OK ==&gt; without error
-//	less than 0 ==&gt; error code
+//	ERR_OK ==> without error
+//	less than 0 ==> error code
 // --------------------------------------------------------------------
 int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
 {
@@ -560,23 +560,23 @@ int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
 	int l;
 	int i, rc;
 
-	wp = (addr &amp; ~3);   /* get lower word aligned address */
+	wp = (addr & ~3);   /* get lower word aligned address */
 
 	/*
 	 * handle unaligned start bytes
 	 */
 	if ((l = addr - wp) != 0) {
 		data = 0;
-		for (i=0, cp=wp; i&lt;l; ++i, ++cp) {
-			data = (data &gt;&gt; 8) | (*(uchar *)cp &lt;&lt; 24);
+		for (i=0, cp=wp; i<l; ++i, ++cp) {
+			data = (data >> 8) | (*(uchar *)cp << 24);
 		}
-		for (; i&lt;4 &amp;&amp; cnt&gt;0; ++i) {
-			data = (data &gt;&gt; 8) | (*src++ &lt;&lt; 24);
+		for (; i<4 && cnt>0; ++i) {
+			data = (data >> 8) | (*src++ << 24);
 			--cnt;
 			++cp;
 		}
-		for (; cnt==0 &amp;&amp; i&lt;4; ++i, ++cp) {
-			data = (data &gt;&gt; 8) | (*(uchar *)cp &lt;&lt; 24);
+		for (; cnt==0 && i<4; ++i, ++cp) {
+			data = (data >> 8) | (*(uchar *)cp << 24);
 		}
 
 		if ((rc = write_word(info, wp, data)) != 0) {
@@ -588,7 +588,7 @@ int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
 	/*
 	 * handle word aligned part
 	 */
-	while (cnt &gt;= 4) {
+	while (cnt >= 4) {
 		data = *((vulong*)src);
 		if ((rc = write_word(info, wp, data)) != 0) {
 			return (rc);
@@ -596,10 +596,10 @@ int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
 		src += 4;
 		wp  += 4;
 		cnt -= 4;
-		if((cnt&amp;0xfff)==0x0)
-			printf(&quot;.&quot;);
+		if((cnt&0xfff)==0x0)
+			printf(".");
 	}
-	printf(&quot;\n&quot;);
+	printf("\n");
 	if (cnt == 0) {
 		return ERR_OK;
 	}
@@ -608,12 +608,12 @@ int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
 	 * handle unaligned tail bytes
 	 */
 	data = 0;
-	for (i=0, cp=wp; i&lt;4 &amp;&amp; cnt&gt;0; ++i, ++cp) {
-		data = (data &gt;&gt; 8) | (*src++ &lt;&lt; 24);
+	for (i=0, cp=wp; i<4 && cnt>0; ++i, ++cp) {
+		data = (data >> 8) | (*src++ << 24);
 		--cnt;
 	}
-	for (; i&lt;4; ++i, ++cp) {
-		data = (data &gt;&gt; 8) | (*(uchar *)cp &lt;&lt; 24);
+	for (; i<4; ++i, ++cp) {
+		data = (data >> 8) | (*(uchar *)cp << 24);
 	}
 
 	return write_word(info, wp, data);

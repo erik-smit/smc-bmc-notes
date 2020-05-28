@@ -1,9 +1,9 @@
 /*
  * (C) Copyright 2002
- * Gary Jennejohn, DENX Software Engineering, &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">gj at denx.de</A>&gt;
+ * Gary Jennejohn, DENX Software Engineering, <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">gj at denx.de</A>>
  *
  * Copyright (C) 2009 Andes Technology Corporation
- * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
+ * Shawn Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,11 @@
  *
  */
 
-#include &lt;asm/andesboot.h&gt;
-#include &lt;asm/global_data.h&gt;
-#include &quot;../include/symbol.h&quot;
-#include &quot;../include/porting.h&quot;
-#include &quot;../include/serial.h&quot;
+#include <asm/andesboot.h>
+#include <asm/global_data.h>
+#include "../include/symbol.h"
+#include "../include/porting.h"
+#include "../include/serial.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -38,7 +38,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #elif CONFIG_SERIAL2
 	UINT32 DebugSerialPort = NDS32_COMMON_UART2_BASE;
 #else
-	#error &quot;Bad: you didn't configure serial ...&quot;
+	#error "Bad: you didn't configure serial ..."
 #endif
 
 
@@ -47,24 +47,24 @@ void serial_setbrg(void)
 {
 	unsigned int reg = 0;
 
-	if (gd-&gt;baudrate == 9600)
+	if (gd->baudrate == 9600)
 	{
 		reg = NDS32_COMMON_BAUD_9600;
 	}
-	else if (gd-&gt;baudrate == 19200)
+	else if (gd->baudrate == 19200)
 	{
 		reg = NDS32_COMMON_BAUD_19200;
 	}
-	else if (gd-&gt;baudrate == 38400)
+	else if (gd->baudrate == 38400)
 	{
 		reg = NDS32_COMMON_BAUD_38400;
 	}
-	else if (gd-&gt;baudrate == 57600)
+	else if (gd->baudrate == 57600)
 	{
 		reg = NDS32_COMMON_BAUD_57600;
 	}
 #if (SYS_CLK == 22118400)
-	else if (gd-&gt;baudrate == 115200)
+	else if (gd->baudrate == 115200)
 	{
 		reg = NDS32_COMMON_BAUD_115200;
 	}
@@ -87,11 +87,11 @@ int serial_init(void)
 {
 	const char *baudrate;
 
-	gd-&gt;baudrate = CONFIG_BAUDRATE;
-	if ((baudrate = getenv(&quot;baudrate&quot;)) != 0)
+	gd->baudrate = CONFIG_BAUDRATE;
+	if ((baudrate = getenv("baudrate")) != 0)
 	{
-		//printf(&quot;serial_init&gt; baudrate: %s \n&quot;, baudrate);
-		gd-&gt;baudrate = simple_strtoul(baudrate, NULL, 10);
+		//printf("serial_init> baudrate: %s \n", baudrate);
+		gd->baudrate = simple_strtoul(baudrate, NULL, 10);
 	}
 	//serial_setbrg();
 
@@ -130,7 +130,7 @@ void serial_putc(const char c)
  */
 int serial_tstc(void)
 {
-	return ( cpe_inl( DebugSerialPort + SERIAL_LSR ) &amp; SERIAL_LSR_DR ) == SERIAL_LSR_DR;
+	return ( cpe_inl( DebugSerialPort + SERIAL_LSR ) & SERIAL_LSR_DR ) == SERIAL_LSR_DR;
 }
 
 void serial_puts (const char *s)

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2005 Andes Technology Corporation
- * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
- * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
+ * Shawn Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>>
+ * Macpaul Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>>
  *
  * filename: ftpci100.c
  * description: the low-level code for FTPCI100 AHB-PCI Bridge,
@@ -29,13 +29,13 @@
  * MA 02111-1307 USA
  */
 
-#include &lt;ftpci100.h&gt;
-#include &lt;common.h&gt;
-#include &lt;asm/andesboot.h&gt;
-#include &lt;malloc.h&gt;
-#include &lt;command.h&gt;
+#include <ftpci100.h>
+#include <common.h>
+#include <asm/andesboot.h>
+#include <malloc.h>
+#include <command.h>
 
-#if defined(CONFIG_CMD_PCI) &amp;&amp; defined (CONFIG_DRIVER_FTPCI100)
+#if defined(CONFIG_CMD_PCI) && defined (CONFIG_DRIVER_FTPCI100)
 
 /*
  * register IOs
@@ -55,9 +55,9 @@ typedef struct
 	volatile unsigned char offset[4096];	/* 4K * 1 = SZ_4K */
 } __regbase8;
 
-#define REG32(a)		((__regbase32 *)((a)&amp;~4095))-&gt;offset[((a)&amp;4095)&gt;&gt;2]
-#define REG16(a)		((__regbase16 *)((a)&amp;~4095))-&gt;offset[((a)&amp;4095)&gt;&gt;1]
-#define REG8(a)			((__regbase8  *)((a)&amp;~4095))-&gt;offset[((a)&amp;4095)&gt;&gt;0]
+#define REG32(a)		((__regbase32 *)((a)&~4095))->offset[((a)&4095)>>2]
+#define REG16(a)		((__regbase16 *)((a)&~4095))->offset[((a)&4095)>>1]
+#define REG8(a)			((__regbase8  *)((a)&~4095))->offset[((a)&4095)>>0]
 
 #define inb(a)			REG8(a)
 #define inhw(a)			REG16(a)
@@ -90,13 +90,13 @@ static void flib_PCI_INT_Init(void)
 
 	pu32 = (unsigned int*)PCI_CARD_MEM_BASE;
 
-	printf(&quot;test start \r\n&quot;);
-	for(u32i=0; u32i&lt;0x1000; u32i++)
+	printf("test start \r\n");
+	for(u32i=0; u32i<0x1000; u32i++)
 		pu32[u32i] = u32i;
-	for(u32i=0; u32i&lt;0x1000; u32i++)
+	for(u32i=0; u32i<0x1000; u32i++)
 		if(pu32[u32i] != u32i)
-			printf(&quot;err: %08Xh	W:%04Xh	R:%04Xh \r\n&quot;, &amp;pu32[u32i], u32i, pu32[u32i]);
-	printf(&quot;test finish \r\n&quot;);
+			printf("err: %08Xh	W:%04Xh	R:%04Xh \r\n", &pu32[u32i], u32i, pu32[u32i]);
+	printf("test finish \r\n");
 #endif
 #if 0
 	PCIBridgeINTPollingIndex=0;
@@ -139,7 +139,7 @@ static void InitPCIBridge(UINT32 RegBase)
 #if 0
 	u32TestValue1 |= PCI_ENABLE_INTA_INTB_INTC_INTD;
 #else
-	u32TestValue1 &amp;= ~PCI_ALL_INTs_MASK; // disable INTs
+	u32TestValue1 &= ~PCI_ALL_INTs_MASK; // disable INTs
 #endif
 	outw(NDS32_COMMON_PCI_IO_BASE+PCI_CONFIG_ADDR_REG, (PCI_BRIDGE_CFG_SPACE_CONTROL|0x80000000));
 	outw(NDS32_COMMON_PCI_IO_BASE+PCI_CONFIG_DATA_REG, u32TestValue1);
@@ -175,7 +175,7 @@ void flib_DisablePCIDevice(PCIDeviceIDStruct PCIDeviceID)
 	UINT32 CMDType;
 	PCIDeviceID.RegNum = PCI_CSH_COMMAND_REG;
 	CMDType = flib_ReadPCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG);
-	flib_WritePCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG, CMDType &amp; ~(UINT32)(PCI_CMD_IO_ENABLE|PCI_CMD_MEM_ENABLE));
+	flib_WritePCICfgSpaceByte(PCIDeviceID, PCI_CSH_COMMAND_REG, CMDType & ~(UINT32)(PCI_CMD_IO_ENABLE|PCI_CMD_MEM_ENABLE));
 }
 
 
@@ -211,31 +211,31 @@ void flib_AssignPCIResource
 	UINT32	lw, i, j, Reg, BaseAddrReg, BaseSize;
 	UINT32	dwAlignmentSize;
 
-	for (i = 0 ; i &lt; PCI_MAX_BAR_NUM ; i++)
+	for (i = 0 ; i < PCI_MAX_BAR_NUM ; i++)
 	{
 		Reg = PCI_CSH_BASE_ADDR_REG + (i * 4);
 		flib_WritePCICfgSpaceWord(PCIDeviceID, Reg, 0xFFFFFFFF);
 		lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, Reg);
-		print_pci(&quot;%08Xh \r\n&quot;, lw);
+		print_pci("%08Xh \r\n", lw);
 
-		if ((lw == 0) || ((lw &amp; 0xffffffff) == 0xffffffff))
+		if ((lw == 0) || ((lw & 0xffffffff) == 0xffffffff))
 		{
 			continue;
 		}
 		else
 		{
-			if ((lw &amp; 0x01) != 0x00)		 /* it's IO base */
+			if ((lw & 0x01) != 0x00)		 /* it's IO base */
 			{
-				print_pci(&quot;it's IO base\n\r&quot;);//<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
-				lw &gt;&gt;= 2;
-				for (j=2; j &lt; 32; j++)
+				print_pci("it's IO base\n\r");//<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
+				lw >>= 2;
+				for (j=2; j < 32; j++)
 				{
-					if ((lw &amp; 0x01) == 0x01) // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
+					if ((lw & 0x01) == 0x01) // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
 						break;
-					lw &gt;&gt;= 1;
+					lw >>= 1;
 				}
-				BaseSize = 1 &lt;&lt; j;
-				if (BaseSize&gt;=PCI_IO_SPACE_ALIGNMENT)
+				BaseSize = 1 << j;
+				if (BaseSize>=PCI_IO_SPACE_ALIGNMENT)
 						dwAlignmentSize=BaseSize;
 				else	dwAlignmentSize=PCI_IO_SPACE_ALIGNMENT;
 
@@ -245,22 +245,22 @@ void flib_AssignPCIResource
 				BaseAddrReg = *PciIoStart;
 				*PciIoStart += BaseSize;
 				flib_WritePCICfgSpaceWord(PCIDeviceID, Reg, BaseAddrReg);
-				print_pci(&quot;	B:%02u.D:%02u.F:%02u	Reg:%08Xh	BaseAddrReg:%08Xh\r\n&quot;,
+				print_pci("	B:%02u.D:%02u.F:%02u	Reg:%08Xh	BaseAddrReg:%08Xh\r\n",
 					PCIDeviceID.BusNum, PCIDeviceID.DevNum, PCIDeviceID.FunNum, Reg, BaseAddrReg);
 			}
-			else if ((lw &amp; 0x01) != 0x01)		/* it's Memory base */
+			else if ((lw & 0x01) != 0x01)		/* it's Memory base */
 			{
-				print_pci(&quot;it's Memory base\n\r&quot;);//<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
-				lw &gt;&gt;= 4;
-				for (j=4; j &lt; 32; j++)
+				print_pci("it's Memory base\n\r");//<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Howard at 2007-4-23</A>
+				lw >>= 4;
+				for (j=4; j < 32; j++)
 				{
-					if ((lw &amp; 0x01) == 0x01) // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
+					if ((lw & 0x01) == 0x01) // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
 						break;
-					lw &gt;&gt;= 1;
+					lw >>= 1;
 				}
-				BaseSize = 1 &lt;&lt; j;
+				BaseSize = 1 << j;
 
-				if (BaseSize&gt;=PCI_MEM_SPACE_ALIGNMENT)
+				if (BaseSize>=PCI_MEM_SPACE_ALIGNMENT)
 						dwAlignmentSize=BaseSize;
 				else	dwAlignmentSize=PCI_MEM_SPACE_ALIGNMENT;
 
@@ -269,7 +269,7 @@ void flib_AssignPCIResource
 
 				BaseAddrReg = *PciMemStart;
 				flib_WritePCICfgSpaceWord(PCIDeviceID, Reg, BaseAddrReg);
-				print_pci(&quot;	B:%02u.D:%02u.F:%02u	Reg:%08Xh	BaseAddrReg:%08Xh\r\n&quot;,
+				print_pci("	B:%02u.D:%02u.F:%02u	Reg:%08Xh	BaseAddrReg:%08Xh\r\n",
 					PCIDeviceID.BusNum, PCIDeviceID.DevNum, PCIDeviceID.FunNum, Reg, BaseAddrReg);
 
 				*PciMemStart += BaseSize;
@@ -285,49 +285,49 @@ BOOL flib_FindNextPCIDevice(PCIDeviceIDStruct CurrDevID,PCIDeviceIDStruct *NextD
 
 	/* read vendor id to check whether this PCI device exists or not */
 	VendorID = flib_ReadPCICfgSpaceHalfWord(CurrDevID, PCI_CSH_VENDOR_ID_REG);
-	if ((VendorID != 0x0) &amp;&amp; (VendorID != 0xFFFF))
+	if ((VendorID != 0x0) && (VendorID != 0xFFFF))
 	{
 		//This device is exist, then it will get the counter of the Dev number and Fun number
-		printf(&quot;\r\n+ FindNextPCIDev,	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n&quot;,
+		printf("\r\n+ FindNextPCIDev,	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n",
 			CurrDevID.BusNum, CurrDevID.DevNum, CurrDevID.FunNum, VendorID);
 
 		//1.To determine single_function/multi_function
 		HeaderType = flib_ReadPCICfgSpaceByte(CurrDevID, PCI_CSH_HEADER_TYPE_REG);
 		/* the bit 7 of header type is 1, it it multi function device */
-		if (HeaderType &amp; PCI_HEADER_TYPE_MULTI_FUNCTION)
+		if (HeaderType & PCI_HEADER_TYPE_MULTI_FUNCTION)
 		{
-			printf(&quot;multi-func \r\n&quot;);
+			printf("multi-func \r\n");
 			CurrDevID.FunNum++;
-			if (CurrDevID.FunNum &gt;= PCI_MAX_FUNCTION_NUM)
+			if (CurrDevID.FunNum >= PCI_MAX_FUNCTION_NUM)
 				CurrDevID.DevNum++;
 		}
 		else
 		{
-			printf(&quot;single-func \r\n&quot;);
+			printf("single-func \r\n");
 			CurrDevID.DevNum++;
 			CurrDevID.FunNum = 0;
 		}
 
-		printf(&quot;\r\n- FindNextPCIDev,	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n&quot;,
+		printf("\r\n- FindNextPCIDev,	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n",
 			CurrDevID.BusNum, CurrDevID.DevNum, CurrDevID.FunNum, VendorID);
 
 	}
 	else
 	{
-		//printf(&quot;%s[Ln.%u] invalid Vendor ID: %04Xh /r/n&quot;, __FILE__, __LINE__, VendorID);
+		//printf("%s[Ln.%u] invalid Vendor ID: %04Xh /r/n", __FILE__, __LINE__, VendorID);
 		/* if this PCI device does not exist, find PCI device from the beginning */
 		CurrDevID.BusNum = 0;
 		CurrDevID.DevNum = 0;
 		CurrDevID.FunNum = 0;
 	}
 
-	for (;CurrDevID.BusNum &lt; PCI_MAX_BUS_NUM; CurrDevID.BusNum++, CurrDevID.DevNum=0)
-		for (;CurrDevID.DevNum &lt; PCI_MAX_DEVICE_NUM; CurrDevID.DevNum++, CurrDevID.FunNum=0)
-			for (;CurrDevID.FunNum &lt; PCI_MAX_FUNCTION_NUM; CurrDevID.FunNum++)
+	for (;CurrDevID.BusNum < PCI_MAX_BUS_NUM; CurrDevID.BusNum++, CurrDevID.DevNum=0)
+		for (;CurrDevID.DevNum < PCI_MAX_DEVICE_NUM; CurrDevID.DevNum++, CurrDevID.FunNum=0)
+			for (;CurrDevID.FunNum < PCI_MAX_FUNCTION_NUM; CurrDevID.FunNum++)
 			{
 				VendorID = flib_ReadPCICfgSpaceHalfWord(CurrDevID, PCI_CSH_VENDOR_ID_REG);
 
-				if ((VendorID != 0x0) &amp;&amp; (VendorID != 0xFFFF))
+				if ((VendorID != 0x0) && (VendorID != 0xFFFF))
 				{
 					*NextDevID = CurrDevID;
 					return TRUE;
@@ -350,18 +350,18 @@ static void flib_AssignPCIResource_hill(void)
 	CurrDevID_st.FunNum = 0;
 
 	/* read vendor id to check whether this PCI device exists or not */
-	for (;CurrDevID_st.BusNum &lt; PCI_MAX_BUS_NUM; CurrDevID_st.BusNum++, CurrDevID_st.DevNum=0)
-		for (;CurrDevID_st.DevNum &lt; PCI_MAX_DEVICE_NUM; CurrDevID_st.DevNum++, CurrDevID_st.FunNum=0)
-			for (;CurrDevID_st.FunNum &lt; PCI_MAX_FUNCTION_NUM; CurrDevID_st.FunNum++)
+	for (;CurrDevID_st.BusNum < PCI_MAX_BUS_NUM; CurrDevID_st.BusNum++, CurrDevID_st.DevNum=0)
+		for (;CurrDevID_st.DevNum < PCI_MAX_DEVICE_NUM; CurrDevID_st.DevNum++, CurrDevID_st.FunNum=0)
+			for (;CurrDevID_st.FunNum < PCI_MAX_FUNCTION_NUM; CurrDevID_st.FunNum++)
 			{
 				VendorID = flib_ReadPCICfgSpaceHalfWord(CurrDevID_st, PCI_CSH_VENDOR_ID_REG);
-				if ((VendorID != 0x0) &amp;&amp; (VendorID != 0xFFFF))
+				if ((VendorID != 0x0) && (VendorID != 0xFFFF))
 				{
 					flib_DisablePCIDevice(CurrDevID_st);
-					print_pci(&quot;\r\n	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n&quot;,
+					print_pci("\r\n	B:%02u.D:%02u.F:%02u	VID: %04Xh \r\n",
 						CurrDevID_st.BusNum, CurrDevID_st.DevNum, CurrDevID_st.FunNum, VendorID);
 					flib_AssignPCIResource(CurrDevID_st,
-						&amp;sg_PCIRscMap_s.PciMem0Addr, &amp;sg_PCIRscMap_s.PciIOAddr);
+						&sg_PCIRscMap_s.PciMem0Addr, &sg_PCIRscMap_s.PciIOAddr);
 
 					flib_EnablePCIDevice(CurrDevID_st);
 					flib_SetPCIMaster(CurrDevID_st);
@@ -378,22 +378,22 @@ static void flib_scan_device(void)
 	PCIDeviceIDStruct CurrDevID;
 	UINT8 u8HeadType;
 
-	for(CurrDevID.BusNum=0; CurrDevID.BusNum &lt; PCI_MAX_BUS_NUM; CurrDevID.BusNum++)
-		for (CurrDevID.DevNum=0; CurrDevID.DevNum &lt; PCI_MAX_DEVICE_NUM; CurrDevID.DevNum++)
-			for (CurrDevID.FunNum=0;CurrDevID.FunNum &lt; PCI_MAX_FUNCTION_NUM; CurrDevID.FunNum++)
+	for(CurrDevID.BusNum=0; CurrDevID.BusNum < PCI_MAX_BUS_NUM; CurrDevID.BusNum++)
+		for (CurrDevID.DevNum=0; CurrDevID.DevNum < PCI_MAX_DEVICE_NUM; CurrDevID.DevNum++)
+			for (CurrDevID.FunNum=0;CurrDevID.FunNum < PCI_MAX_FUNCTION_NUM; CurrDevID.FunNum++)
 			{
 				u16VendorID = flib_ReadPCICfgSpaceHalfWord(CurrDevID, PCI_CSH_VENDOR_ID_REG);
 				u16DevID = flib_ReadPCICfgSpaceHalfWord(CurrDevID, PCI_CSH_DEVICE_ID_REG);
 				u8HeadType = flib_ReadPCICfgSpaceByte(CurrDevID, PCI_CSH_HEADER_TYPE_REG);
 
 				if(0 == u16VendorID)
-					printf(&quot;VID == 0 \r\n&quot;);
+					printf("VID == 0 \r\n");
 				else if(0xFFFF != u16DevID)
 				{
-					printf(&quot;Bus: %02Xh	Dev: %02Xh	Func: %02Xh \r\n&quot;,
+					printf("Bus: %02Xh	Dev: %02Xh	Func: %02Xh \r\n",
 						CurrDevID.BusNum, CurrDevID.DevNum, CurrDevID.FunNum);
-					printf(&quot;	VID: %04Xh	DevID: %04Xh	%s\r\n&quot;, u16VendorID, u16DevID,
-						(u8HeadType&amp;0x80)?&quot;Multi-Fun&quot;:&quot;Single-Fun&quot;);
+					printf("	VID: %04Xh	DevID: %04Xh	%s\r\n", u16VendorID, u16DevID,
+						(u8HeadType&0x80)?"Multi-Fun":"Single-Fun");
 				}
 			}
 }
@@ -413,12 +413,12 @@ static void flib_PCI_InitPCIDevice(void)
 	// 3.Reserve Mem for DMA, write Base/Size to the PCI Bridge Configuration Space
 	flib_PCIBridgeMemoryRequest();
 
-	// 4.Assign the Resource &amp; Enable PCI DEVICE &amp; Start PCI Device
+	// 4.Assign the Resource & Enable PCI DEVICE & Start PCI Device
 	PCIDeviceID.BusNum = PCIDeviceID.DevNum = PCIDeviceID.FunNum = 0;
 	// device 0 has been assigned resource in step.3.
-	while(flib_FindNextPCIDevice(PCIDeviceID, &amp;PCIDeviceID))
+	while(flib_FindNextPCIDevice(PCIDeviceID, &PCIDeviceID))
 	{
-		flib_AssignPCIResource(PCIDeviceID, &amp;sg_PCIRscMap_s.PciMem0Addr, &amp;sg_PCIRscMap_s.PciIOAddr);
+		flib_AssignPCIResource(PCIDeviceID, &sg_PCIRscMap_s.PciMem0Addr, &sg_PCIRscMap_s.PciIOAddr);
 		flib_EnablePCIDevice(PCIDeviceID);
 		flib_SetPCIMaster(PCIDeviceID);
 	}
@@ -427,8 +427,8 @@ static void flib_PCI_InitPCIDevice(void)
 	PCIDeviceID.DevNum = 0;
 	PCIDeviceID.FunNum = 0;
 	flib_WritePCICfgSpaceWord(PCIDeviceID, PCI_BRIDGE_CFG_SPACE_MEM1_BA,
-		PCI_INBOUND_MEM_BASE &amp; (~0xFFF0000) | PCI_INBOUND_MEM_256MB);
-	print_pci(&quot;%X \r\n&quot;, PCI_INBOUND_MEM_BASE &amp; (~0xFFF0000) | PCI_INBOUND_MEM_256MB);
+		PCI_INBOUND_MEM_BASE & (~0xFFF0000) | PCI_INBOUND_MEM_256MB);
+	print_pci("%X \r\n", PCI_INBOUND_MEM_BASE & (~0xFFF0000) | PCI_INBOUND_MEM_256MB);
 
 	//flib_scan_device();
 	flib_AssignPCIResource_hill();
@@ -439,7 +439,7 @@ static UINT32 flib_ReadPCICfgSpaceWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg
 {
 	PCIDeviceID.RegNum = Reg;
 	PCIDeviceID.Enable = 1;
-	outw(sg_PCIRegBase + PCI_CONFIG_ADDR_REG, *(UINT32 *)((void *)&amp;PCIDeviceID)); // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
+	outw(sg_PCIRegBase + PCI_CONFIG_ADDR_REG, *(UINT32 *)((void *)&PCIDeviceID)); // <A HREF="http://lists.denx.de/mailman/listinfo/u-boot">Harry at Dec.30.2006</A>
 	return inw(sg_PCIRegBase+PCI_CONFIG_DATA_REG);
 }
 
@@ -447,17 +447,17 @@ static UINT16 flib_ReadPCICfgSpaceHalfWord(PCIDeviceIDStruct PCIDeviceID, UINT32
 {
 	UINT32 lw;
 
-	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc));
+	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc));
 	switch(Reg % 4)
 	{
 		case 0:
 		case 1:
-			lw &amp;= 0x0000FFFF;
+			lw &= 0x0000FFFF;
 			break;
 		case 2:
 		case 3:
-			lw &amp;= 0xFFFF0000;
-			lw = lw &gt;&gt; 16;
+			lw &= 0xFFFF0000;
+			lw = lw >> 16;
 			break;
 	}
 
@@ -469,23 +469,23 @@ static UINT8 flib_ReadPCICfgSpaceByte(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg)
 {
 	UINT32 lw;
 
-	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc));
+	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc));
 	switch(Reg % 4)
 	{
 		case 0:
-			lw &amp;= 0x000000FF;
+			lw &= 0x000000FF;
 			break;
 		case 1:
-			lw &amp;= 0x0000FF00;
-			lw = lw &gt;&gt; 8;
+			lw &= 0x0000FF00;
+			lw = lw >> 8;
 			break;
 		case 2:
-			lw &amp;= 0x00FF0000;
-			lw = lw &gt;&gt; 16;
+			lw &= 0x00FF0000;
+			lw = lw >> 16;
 			break;
 		case 3:
-			lw &amp;= 0xFF000000;
-			lw = lw &gt;&gt; 24;
+			lw &= 0xFF000000;
+			lw = lw >> 24;
 			break;
 	}
 
@@ -497,7 +497,7 @@ static void flib_WritePCICfgSpaceWord(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg,
 	PCIDeviceID.RegNum = Reg;
 	PCIDeviceID.Enable = 1;
 
-	outw(sg_PCIRegBase + PCI_CONFIG_ADDR_REG,	*(UINT32 *)((void *)&amp;PCIDeviceID));
+	outw(sg_PCIRegBase + PCI_CONFIG_ADDR_REG,	*(UINT32 *)((void *)&PCIDeviceID));
 	outw(sg_PCIRegBase + PCI_CONFIG_DATA_REG, dt);
 }
 
@@ -505,20 +505,20 @@ static void flib_WritePCICfgSpaceHalfWord(PCIDeviceIDStruct PCIDeviceID, UINT32 
 {
 	UINT32 lw;
 
-	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc));
+	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc));
 	switch(Reg % 4)
 	{
 		case 0:
 		case 1:
-			lw &amp;= 0xFFFF0000;
+			lw &= 0xFFFF0000;
 			lw += dt;
-			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
+			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc), lw);
 			break;
 		case 2:
 		case 3:
-			lw &amp;= 0x0000FFFF;
-			lw += (UINT32)(((UINT32)dt) &lt;&lt; 16);
-			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
+			lw &= 0x0000FFFF;
+			lw += (UINT32)(((UINT32)dt) << 16);
+			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc), lw);
 			break;
 	}
 }
@@ -527,28 +527,28 @@ static void flib_WritePCICfgSpaceByte(PCIDeviceIDStruct PCIDeviceID, UINT32 Reg,
 {
 	UINT32 lw;
 
-	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc));
+	lw = flib_ReadPCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc));
 	switch(Reg % 4)
 	{
 		case 0:
-			lw &amp;= 0xFFFFFF00;
+			lw &= 0xFFFFFF00;
 			lw += dt;
-			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
+			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc), lw);
 			break;
 		case 1:
-			lw &amp;= 0xFFFF00FF;
-			lw += (UINT32)(((UINT32)dt) &lt;&lt; 8);
-			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
+			lw &= 0xFFFF00FF;
+			lw += (UINT32)(((UINT32)dt) << 8);
+			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc), lw);
 			break;
 		case 2:
-			lw &amp;= 0xFF00FFFF;
-			lw += (UINT32)(((UINT32)dt) &lt;&lt; 16);
-			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
+			lw &= 0xFF00FFFF;
+			lw += (UINT32)(((UINT32)dt) << 16);
+			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc), lw);
 			break;
 		case 3:
-			lw &amp;= 0x00FFFFFF;
-			lw += (UINT32)(((UINT32)dt) &lt;&lt; 24);
-			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&amp;0xfffffffc), lw);
+			lw &= 0x00FFFFFF;
+			lw += (UINT32)(((UINT32)dt) << 24);
+			flib_WritePCICfgSpaceWord(PCIDeviceID, (Reg&0xfffffffc), lw);
 			break;
 	}
 }
@@ -626,7 +626,7 @@ int flib_write_dword(struct pci_controller *pPciHC, pci_dev_t PciDev, int where,
 // low-level init routine, called by /drivers/pci/pci.c - pci_init.
 void pci_init_board(void)
 {
-	struct pci_controller *host = &amp;sg_PCIHost;
+	struct pci_controller *host = &sg_PCIHost;
 
 	flib_PCI_InitPCIDevice();
 
@@ -635,8 +635,8 @@ void pci_init_board(void)
 	/*
 	 * Register the hose
 	 */
-	host-&gt;first_busno = 0;
-	host-&gt;last_busno = 0xff;
+	host->first_busno = 0;
+	host->last_busno = 0xff;
 
 	/*pci_setup_indirect(host,
 			(sg_PCIRegBase + PCI_CONFIG_ADDR_REG),
@@ -645,57 +645,57 @@ void pci_init_board(void)
 
 #if 0
 	/* System memory space */
-	pci_set_region (host-&gt;regions + 0,
+	pci_set_region (host->regions + 0,
 			AP1000_SYS_MEM_START, AP1000_SYS_MEM_START,
 			AP1000_SYS_MEM_SIZE,
 			PCI_REGION_MEM | PCI_REGION_SYS_MEMORY);
 
 	/* PCI Memory space */
-	pci_set_region (host-&gt;regions + 1,
+	pci_set_region (host->regions + 1,
 			PSII_PCI_MEM_BASE, PSII_PCI_MEM_BASE,
 			PSII_PCI_MEM_SIZE, PCI_REGION_MEM);
 
-	host-&gt;region_count = 2;
+	host->region_count = 2;
 #else
 	#if 0
 	/* PCI memory space */
-	pci_set_region(host-&gt;regions + 1,
+	pci_set_region(host->regions + 1,
 				PCI_CARD_MEM_BASE,
 				PCI_CARD_MEM_BASE,
 				PCI_CARD_MEM_TOTAL_SIZE,
 				PCI_REGION_MEM);
 
 	/* PCI IO space */
-	pci_set_region(host-&gt;regions + 2,
+	pci_set_region(host->regions + 2,
 				PCI_CARD_IO_BASE,
 				PCI_CARD_IO_BASE,
 				0x100000-0x1000,
 				PCI_REGION_IO);
 
-	host-&gt;region_count = 2;
+	host->region_count = 2;
 	#else
 	/* System space */
-	pci_set_region(host-&gt;regions + 0,
+	pci_set_region(host->regions + 0,
 				PCI_BRIDGE_DMA_START_ADDRESS,
 				PCI_BRIDGE_DMA_START_ADDRESS,
 				PCI_BRIDGE_DMA_START_SIZE_VALUE - PCI_BRIDGE_DMA_START_ADDRESS,
 				PCI_REGION_MEM | PCI_REGION_SYS_MEMORY);
 
 	/* PCI memory space */
-	pci_set_region(host-&gt;regions + 1,
+	pci_set_region(host->regions + 1,
 				PCI_CARD_MEM_BASE,
 				PCI_CARD_MEM_BASE,
 				PCI_CARD_MEM_TOTAL_SIZE,
 				PCI_REGION_MEM);
 
 	/* PCI IO space */
-	pci_set_region(host-&gt;regions + 2,
+	pci_set_region(host->regions + 2,
 				PCI_CARD_IO_BASE,
 				PCI_CARD_IO_BASE,
 				0x100000-0x1000,
 				PCI_REGION_IO);
 
-	host-&gt;region_count = 3;
+	host->region_count = 3;
 #endif
 #endif
 
@@ -706,7 +706,7 @@ void pci_init_board(void)
 
 	pci_register_hose (host);
 
-	host-&gt;last_busno = pci_hose_scan (host);
+	host->last_busno = pci_hose_scan (host);
 }
 
 #endif

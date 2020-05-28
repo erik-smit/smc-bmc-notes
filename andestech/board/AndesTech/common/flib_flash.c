@@ -1,11 +1,11 @@
 /*
  * (C) Copyright 2002
- * Sysgo Real-Time Solutions, GmbH &lt;www.elinos.com&gt;
- * Marius Groeger &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>&gt;
+ * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
+ * Marius Groeger <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">mgroeger at sysgo.de</A>>
  *
  * Copyright (C) 2006 Andes Technology Corporation
- * Shawn Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>&gt;
- * Macpaul Lin, Andes Technology Corporation &lt;<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>&gt;
+ * Shawn Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">nobuhiro at andestech.com</A>>
+ * Macpaul Lin, Andes Technology Corporation <<A HREF="http://lists.denx.de/mailman/listinfo/u-boot">macpaul at andestech.com</A>>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -37,9 +37,9 @@
 *-----------------------------------------------------------------------*
 ************************************************************************/
 
-#include &quot;../include/porting.h&quot;
-#include &quot;../include/flib_flash.h&quot;
-//#include &lt;flash.h&gt;
+#include "../include/porting.h"
+#include "../include/flib_flash.h"
+//#include <flash.h>
 
 /* add by Charles Tsai */
 void Do_Delay(unsigned count);
@@ -312,7 +312,7 @@ void fLib_Flash_ChipErase(unsigned flash_type, unsigned base, unsigned BusWidth)
 			data = cpe_inl(base);
 			//ivan wang
 			while (data != 0x00800080) {
-			//while ( (data&amp;0xff) != 0x80) {
+			//while ( (data&0xff) != 0x80) {
 				//Do_Delay(0xffff);
 				cpe_outl(base,0x00700070);
 				data=cpe_inl(base);
@@ -436,7 +436,7 @@ void fLib_Flash_SectorErase(unsigned flash_type, unsigned base, unsigned BusWidt
 			data = cpe_inl(base);
 //ivan
 			while (data != 0x00800080) {
-			//while ((data&amp;0xff) != 0x80) {
+			//while ((data&0xff) != 0x80) {
 				//Do_Delay(0xff);
 				cpe_outl(base,0x00700070);
 				data=cpe_inl(base);
@@ -486,7 +486,7 @@ void fLib_Flash_ProgramByte(unsigned flash_type, unsigned base, unsigned address
 
 //ivan
 //		while (s_reg != 0x80) {
-		while ((s_reg&amp;0xff) != 0x80) {
+		while ((s_reg&0xff) != 0x80) {
 		  //Do_Delay(0xff);
 		  cpe_outb(base,0x70);
 		  s_reg=cpe_inb(base);
@@ -520,10 +520,10 @@ void Check_Toggle_Ready (unsigned char  *Dst)
 	long long TimeOut = 0;
 
 	PreData = *Dst;
-	PreData = PreData &amp; 0x40;
-	while ((TimeOut&lt; 0x07FFFFFF) &amp;&amp; (Loop)) {
+	PreData = PreData & 0x40;
+	while ((TimeOut< 0x07FFFFFF) && (Loop)) {
 		CurrData = *Dst;
-		CurrData = CurrData &amp; 0x40;
+		CurrData = CurrData & 0x40;
 		if (PreData == CurrData)
 			Loop = 0;	/* ready to exit the while loop */
 		PreData = CurrData;
@@ -564,7 +564,7 @@ void fLib_Flash_ProgramHalfWord(unsigned flash_type, unsigned base, unsigned add
 		s_reg=cpe_inw(base);
 //ivan
 //		while (s_reg != 0x8080) {
-		while ((s_reg&amp;0xff) != 0x80) {
+		while ((s_reg&0xff) != 0x80) {
 			//Do_Delay(0xff);
 			cpe_outw(base,0x7070);
 			s_reg=cpe_inw(base);
@@ -583,10 +583,10 @@ void Check_Toggle_ReadyHalfWord(unsigned short  *Dst)
 	long long TimeOut = 0;
 
 	PreData = *Dst;
-	PreData = PreData &amp; 0x4040;
-	while ((TimeOut&lt; 0x07FFFFFF) &amp;&amp; (Loop)) {
+	PreData = PreData & 0x4040;
+	while ((TimeOut< 0x07FFFFFF) && (Loop)) {
 		CurrData = *Dst;
-		CurrData = CurrData &amp; 0x4040;
+		CurrData = CurrData & 0x4040;
 		if (PreData == CurrData)
 			Loop = 0;	/* ready to exit the while loop */
 		PreData = CurrData;
@@ -630,7 +630,7 @@ void fLib_Flash_ProgramWord(unsigned flash_type, unsigned base, unsigned address
 
 //ivan
 		while (s_reg != 0x00800080) {
-		//while ((s_reg&amp;0xff) != 0x80) {
+		//while ((s_reg&0xff) != 0x80) {
 		  //Do_Delay(0xf);
 		  cpe_outl(base,0x00700070);
 		  s_reg=cpe_inl(base);
@@ -650,10 +650,10 @@ void Check_Toggle_ReadyWord(unsigned  *Dst)
 
 
 	PreData = *Dst;
-	PreData = PreData &amp; 0x40404040;
+	PreData = PreData & 0x40404040;
 	while (Loop) {
 		CurrData = *Dst;
-		CurrData = CurrData &amp; 0x40404040;
+		CurrData = CurrData & 0x40404040;
 		if (PreData == CurrData)
 			Loop--;	/* ready to exit the while loop */
 		PreData = CurrData;
@@ -684,9 +684,9 @@ int Check_Toggle_ReadyWord1(unsigned base, unsigned programmed_Data, unsigned  *
 		}
 
 		// delay
-		for (i = 0; i &lt; FLASH_PROGRAM_DELAY_CYCLE; i++);
+		for (i = 0; i < FLASH_PROGRAM_DELAY_CYCLE; i++);
 
-		if (loopCounter &gt;= FLASH_PROGRAM_LOOP_COUNTER) {
+		if (loopCounter >= FLASH_PROGRAM_LOOP_COUNTER) {
 			return_status = PROGRAM_NOT_OK;
 			break;
 		}
@@ -717,5 +717,5 @@ void Do_Delay(unsigned count)
 {
 	unsigned i;
 
-	for ( i = count; i&gt;0; i--);
+	for ( i = count; i>0; i--);
 }

@@ -1,0 +1,50 @@
+# uboot
+
+```
+8960@1590700617.867938:ftgmac100_write write addr=0x50 val=0xa0500
+8960@1590700617.869576:ftgmac100_write write addr=0x50 val=0x800a0500
+8960@1590700617.869661:ftgmac100_write write addr=0x4 val=0x0
+8960@1590700617.871930:ftgmac100_write write addr=0x50 val=0x80080000
+8960@1590700617.872868:ftgmac100_write write addr=0x4 val=0x0
+8960@1590700617.873483:ftgmac100_write write addr=0xc val=0x90000001
+8960@1590700617.873824:ftgmac100_write write addr=0x8 val=0x25
+8960@1590700617.874387:ftgmac100_write write addr=0x50 val=0xa050f
+8960@1590700617.875813:ftgmac100_write write addr=0x20 val=0x40524140
+8960@1590700617.878845:ftgmac100_write write addr=0x24 val=0x40524100
+8960@1590700617.879383:ftgmac100_write write addr=0x50 val=0xa050f
+8960@1590700617.879966:ftgmac100_write write addr=0x18 val=0x1
+```
+
+
+# linux
+
+```
+9996@1590701007.892538:ftgmac100_write write addr=0x60 val=0x4200000
+9996@1590701007.905181:ftgmac100_write write addr=0x60 val=0x7000000
+9996@1590701007.915854:ftgmac100_write write addr=0x50 val=0x0
+9996@1590701007.915993:ftgmac100_write write addr=0x50 val=0x80000000
+9996@1590701007.916592:ftgmac100_write write addr=0x4 val=0x0
+9996@1590701007.957761:ftgmac100_write write addr=0x50 val=0x80000
+9996@1590701007.958053:ftgmac100_write write addr=0x50 val=0x80000000
+9996@1590701007.958456:ftgmac100_write write addr=0x4 val=0x0
+9996@1590701061.646749:ftgmac100_write write addr=0x8 val=0x25
+9996@1590701061.647191:ftgmac100_write write addr=0xc val=0x90000001
+9996@1590701063.496699:ftgmac100_write write addr=0x60 val=0x4200000
+9996@1590701063.508015:ftgmac100_write write addr=0x60 val=0x7000000
+9996@1590701063.519091:ftgmac100_write write addr=0x50 val=0x0
+9996@1590701063.519276:ftgmac100_write write addr=0x50 val=0x80000000
+9996@1590701063.521277:ftgmac100_write write addr=0x4 val=0x0
+9996@1590701063.522394:ftgmac100_write write addr=0x4c val=0x600
+9996@1590701063.522685:ftgmac100_write write addr=0x8 val=0x25
+9996@1590701063.522914:ftgmac100_write write addr=0xc val=0x90000001
+9996@1590701063.523517:ftgmac100_write write addr=0x24 val=0x43e35000
+9996@1590701063.523832:ftgmac100_write write addr=0x20 val=0x43e2e000
+9996@1590701063.524361:ftgmac100_write write addr=0x30 val=0x1010
+9996@1590701063.524771:ftgmac100_write write addr=0x34 val=0x1
+9996@1590701063.525265:ftgmac100_write write addr=0x38 val=0x44f97
+9996@1590701063.530603:ftgmac100_write write addr=0x48 val=0xf1
+9996@1590701063.531021:ftgmac100_write write addr=0x10 val=0x0
+9996@1590701063.531530:ftgmac100_write write addr=0x14 val=0x0
+9996@1590701063.531991:ftgmac100_write write addr=0x50 val=0x20c0f
+9996@1590701063.535156:ftgmac100_write write addr=0x18 val=0xffffffff
+```

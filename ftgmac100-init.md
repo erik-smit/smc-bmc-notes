@@ -10,3 +10,5 @@ However bits 12-15 contain RXDES_SIZE and bits 16-19 contain TXDES_SIZE in units
 0x44f97: 0000 0000 0000 **0100 0100** 1111 1001 0111
 
 SMT_X11_158 U-boot doesn't set DBLAC. This is why networking works in U-boot but not in Linux.
+
+Not a lot of documentation on DBLAC register, but it's described in [linux kernel ftgmac100.c](https://github.com/torvalds/linux/blob/e6b45ee790ec61e58a810d20a820e19a5878ffe3/drivers/net/ethernet/faraday/ftgmac100.c#L280-L287)

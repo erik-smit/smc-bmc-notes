@@ -13,5 +13,21 @@ After the driver receives the interrupt from the device, the driver reads this r
 Clear by writing the bits you want cleared. Apparently this clear-on-write is common in NICs.  
 Not to be confused with ISR (interrupt service routine).  
 
+# TXDES 1
 
+| qemu | ftgmac100_26.c | bits | 
+|------|----------------|------|
+| FTGMAC100_INT_XPKT_ETH | TPKT2E_bit | (1 << 4) |
+
+```
+if ( status & (TPKT2E_bit|TPKT_LOST_bit))
+		{
+		        PRINTK3("%s: ftgmac100 interrupt: TPKT2E|TPKT_LOST\n", dev->name);
+			//free tx skb buf
+			ftgmac100_free_tx(dev);
+
+		}
+```
+    
+31 TXIC TXIC - Transmit Interrupt on Completion  
 
